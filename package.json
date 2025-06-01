@@ -1,0 +1,20 @@
+{
+  "name": "Fashiofy",
+  "version": "1.0.0",
+  "description": "Fashiofy is an online fashion store",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js"
+  },
+  "repository": "https://github.com/iCube-code/Fashiofy-bn.git",
+  "author": "Icube-code",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.15.1",
+    "nodemon": "^3.1.10"
+  }
+}
