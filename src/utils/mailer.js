@@ -11,8 +11,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Expects an Object Configuration : {recipient mail,subject,html}
-
 const sendEmail = async (to, subject, message) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
