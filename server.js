@@ -3,8 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const InitializeDB = require("./src/config/db");
 const app = express();
-const PORT = process.env.PORT ?? 3000;
-
+const PORT = process.env.PORT ?? 8080;
 
 app.use("/healthcheck", (req, res) => {
   res.status(200).json({ message: "Everything is working as expected" });
