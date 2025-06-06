@@ -9,8 +9,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Expects an Object Configuration : {recipient mail,subject,html}
-
 const sendEmail = async (to, subject, message) => {
   try {
     const mailOptions = {
