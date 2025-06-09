@@ -7,8 +7,9 @@ const loginValidation = (req, res, next) => {
     });
     const { error } = schema.validate(req.body);
     if (error) {
+        console.log(`error in login validation ${error}`);
         return res.status(400)
-            .json({ message: "Bad Request", error })
+            .json({ message: "Bad Request" })
     }
     next();
 }
