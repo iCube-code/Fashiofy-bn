@@ -2,23 +2,19 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const InitializeDB = require("./src/config/db");
+const InitializeDB = require("./src/v1/config/db");
 dotenv.config();
-const AuthRouter  = require('./src/Routes/AuthRouter');
+const loginRouter_v1 = require('./src/v1/Routes/login');
 
 const app = express();
 const PORT = process.env.PORT;
 
-app.use(express.json());
+app.use(express.json({ extended: true }));
 
 app.use(bodyParser.json());
 app.use(cors());
-app.use('/auth', AuthRouter);
+app.use('/api', loginRouter_v1);
 
-
-app.get('/ping', (req,res)=>{
-  res.send('welcome');
-}) 
 
 app.use("/healthcheck", (req, res) => {
   res.status(200).json({ message: "Everything is working as expected" });
