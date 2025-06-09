@@ -7,7 +7,7 @@ dotenv.config();
 const loginRouter_v1 = require('./src/v1/Routes/login');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT ?? 8080;
 
 app.use(express.json({ extended: true }));
 
