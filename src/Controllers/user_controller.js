@@ -37,7 +37,7 @@ const register = async (req, res, next) => {
 async function login(req, res) {
     try {
         let user = new userService();
-        const existingUser = user.getUser(req.body.email);
+        const existingUser = await user.getUser(req.body.email);
         if (!existingUser) {
             return res.status(403).json({ message: 'User not found', success: false });
         }
