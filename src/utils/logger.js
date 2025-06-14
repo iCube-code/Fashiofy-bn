@@ -1,7 +1,4 @@
 const winston = require("winston");
-const path = require("path");
-
-const loggerPath = path.join(__dirname, "..", "logs");
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === "Production" ? "info" : "debug",
@@ -22,13 +19,6 @@ const logger = winston.createLogger({
         winston.format.colorize(),
         winston.format.simple()
       ),
-    }),
-    new winston.transports.File({
-      filename: path.join(loggerPath, "error.log"),
-      level: "error",
-    }),
-    new winston.transports.File({
-      filename: path.join(loggerPath, "activity-date.log"),
     }),
   ],
 });

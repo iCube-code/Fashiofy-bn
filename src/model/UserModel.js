@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Last name is required"],
       trim: true,
-      minlength: [2, "Last name must be at least 2 characters"],
+      minlength: [1, "Last name must be at least 1 characters"],
       maxlength: [50, "Last name cannot exceed 50 characters"],
     },
 
@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema(
         },
         message: "Please enter a valid email address",
       },
-      
     },
 
     password: {
@@ -81,7 +80,6 @@ userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
-
 });
 
 const User = mongoose.model("User", userSchema);
