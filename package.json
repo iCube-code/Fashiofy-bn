@@ -1,5 +1,5 @@
 {
-  "name": "Fashiofy",
+  "name": "fashiofy",
   "version": "1.0.0",
   "description": "Fashiofy is an online fashion store",
   "main": "server.js",
