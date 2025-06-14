@@ -3,6 +3,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const InitializeDB = require("./src/config/db");
+const logger = require("./src/utils/logger");
+const { InitializeLog } = require("./src/middleware/logMiddleware");
+
 dotenv.config();
 
 const registerRouter_v1 = require('./src/Routes/signup');
@@ -18,6 +21,10 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use('/api', loginRouter_v1);
 
+
+app.use(express.json());
+app.use(express.urlencoded());
+app.use(InitializeLog);
 
 app.use("/healthcheck", (req, res) => {
   res.status(200).json({ message: "Everything is working as expected" });
@@ -40,10 +47,10 @@ app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   try {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    logger.info(`Server is running on http://localhost:${PORT}`);
     InitializeDB();
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     process.exit(1);
   }
 });
