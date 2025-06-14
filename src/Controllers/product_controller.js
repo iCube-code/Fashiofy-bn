@@ -1,0 +1,68 @@
+const { Types } = require("mongoose");
+const ProductService = require("../service/Product.js");
+
+// API for Fetch Product By ID
+const getProductById = async (req, res) => {
+  try {
+    const productService = new ProductService();
+
+    // Product ID must be a valid UUID
+    const { id } = req.params;
+
+    // Validate the ID
+    if (!Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid Product ID",
+      });
+    }
+
+    // Check the Product Exists Or not
+    const product = await productService.getProductById(id);
+    if (!product) {
+      return res.status(404).json({
+        message: "Product Not Found",
+      });
+    }
+
+    // Get all reviews and ratings of Product By ID
+    const ratingsAndCommentsOfProduct =
+      await productService.getRatingsAndCommentsOfProduct(id);
+    
+    // Avg rating of the Product
+    let avgRating = 0;
+    if (ratingsAndCommentsOfProduct.length > 0) {
+      avgRating =
+        ratingsAndCommentsOfProduct.reduce(
+          (acc, rating) => acc + rating.rating,
+          0
+        ) / ratingsAndCommentsOfProduct.length;
+    }
+
+    // User Comments on Product
+    const comments = ratingsAndCommentsOfProduct.map((comment) => ({
+      comment: comment.comment,
+      rating: comment.rating,
+      user_id: comment.fk_user_id,
+    }));
+
+    // Product Images
+    const images = await productService.getProductImagesById(id);
+
+    return res.json({
+      message: `Fetched Product Successfully`,
+      data: {
+        ...product,
+        totalReviews: ratingsAndCommentsOfProduct.length,
+         rating: Number(avgRating.toFixed(1)),
+        images,
+        comments,
+      },
+    });
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error", error: e.message });
+  }
+};
+
+module.exports = { getProductById };
