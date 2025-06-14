@@ -4,12 +4,12 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const InitializeDB = require("./src/config/db");
 const logger = require("./src/utils/logger");
-const { InitializeLog } = require("./src/middleware/logMiddleware");
+const { InitializeLog } = require("./src/middlewares/logMiddleware");
 
 dotenv.config();
 
-const registerRouter_v1 = require('./src/Routes/signup');
-const loginRouter_v1 = require('./src/Routes/login');
+const registerRouter_v1 = require("./src/Routes/signup");
+const loginRouter_v1 = require("./src/Routes/login");
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
 
 const app = express();
@@ -19,8 +19,7 @@ app.use(express.json({ extended: true }));
 
 app.use(bodyParser.json());
 app.use(cors());
-app.use('/api', loginRouter_v1);
-
+app.use("/api", loginRouter_v1);
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -43,7 +42,6 @@ app.use("/api/user", registerRouter_v1);
 
 // Global error handler
 app.use(globalErrorHandler);
-
 
 app.listen(PORT, () => {
   try {
