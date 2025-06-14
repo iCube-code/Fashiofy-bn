@@ -8,7 +8,7 @@ dotenv.config();
 const registerRouter_v1 = require('./src/Routes/signup');
 const loginRouter_v1 = require('./src/Routes/login');
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
-
+const productRoutes = require('./src/Routes/productRoutes');
 const app = express();
 const PORT = process.env.PORT ?? 8080;
 
@@ -17,7 +17,6 @@ app.use(express.json({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 app.use('/api', loginRouter_v1);
-
 
 app.use("/healthcheck", (req, res) => {
   res.status(200).json({ message: "Everything is working as expected" });
@@ -33,6 +32,7 @@ app.use(express.json()); // parse the incomming req into JSON formate
 
 // other Endpoints
 app.use("/api/user", registerRouter_v1);
+app.use('/api/product',productRoutes);
 
 // Global error handler
 app.use(globalErrorHandler);
