@@ -7,6 +7,8 @@ dotenv.config();
 
 const registerRouter_v1 = require('./src/Routes/signup');
 const loginRouter_v1 = require('./src/Routes/login');
+
+const allProductsRouter_v1 = require('./src/Routes/poducts');
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
 
 const app = express();
@@ -37,6 +39,9 @@ app.use("/api/user", registerRouter_v1);
 // Global error handler
 app.use(globalErrorHandler);
 
+//fetch all products
+
+app.use("/api/products",allProductsRouter_v1);
 
 app.listen(PORT, () => {
   try {
