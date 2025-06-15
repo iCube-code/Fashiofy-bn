@@ -1,5 +1,5 @@
 const User = require('../model/UserModel');
-const logger = require("./src/utils/logger");
+const logger = require("../utils/logger");
 
 class userService {
     async getUser(email) {

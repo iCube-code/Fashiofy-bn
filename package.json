@@ -1,5 +1,5 @@
 {
-  "name": "Fashiofy",
+  "name": "fashiofy",
   "version": "1.0.0",
   "description": "Fashiofy is an online fashion store",
   "main": "server.js",
@@ -16,6 +16,7 @@
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",

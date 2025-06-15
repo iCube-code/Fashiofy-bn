@@ -2,7 +2,7 @@ const Product = require("../model/ProductModel");
 const ProductRating = require("../model/ProductRatingModel");
 const ProductImage = require("../model/ProductImageModel");
 const { default: mongoose } = require("mongoose");
-const logger = require("./src/utils/logger");
+const logger = require("../utils/logger");
 
 class ProductService {
    async getProducts() {

@@ -1,5 +1,5 @@
 const joi = require('joi');
-const logger = require("./src/utils/logger");
+const logger = require("../utils/logger");
 
 const loginValidation = (req, res, next) => {
     const schema = joi.object({

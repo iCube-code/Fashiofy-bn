@@ -1,7 +1,7 @@
 const { Types } = require("mongoose");
 const ProductService = require("../service/Product.js");
 const ProductRating = require('../model/ProductRatingModel.js');
-const logger = require("./src/utils/logger");
+const logger = require("../utils/logger.js");
 
 
 // API for Fetch Product By ID
