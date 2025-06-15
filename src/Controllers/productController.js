@@ -14,6 +14,7 @@ const getProductById = async (req, res) => {
 
     // Validate the ID
     if (!Types.ObjectId.isValid(id)) {
+      logger.error("Invalid Product ID");
       return res.status(400).json({
         message: "Invalid Product ID",
       });
@@ -22,6 +23,7 @@ const getProductById = async (req, res) => {
     // Check the Product Exists Or not
     const product = await productService.getProductById(id);
     if (!product) {
+      logger.error("Product Not Found");
       return res.status(404).json({
         message: "Product Not Found",
       });
@@ -62,6 +64,7 @@ const getProductById = async (req, res) => {
       },
     });
   } catch (e) {
+    logger.error( "Internal Server Error");
     return res
       .status(500)
       .json({ message: "Internal Server Error", error: e.message });
