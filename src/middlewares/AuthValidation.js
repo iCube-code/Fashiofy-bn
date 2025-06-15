@@ -1,4 +1,5 @@
 const joi = require('joi');
+const logger = require("./src/utils/logger");
 
 const loginValidation = (req, res, next) => {
     const schema = joi.object({
@@ -7,7 +8,7 @@ const loginValidation = (req, res, next) => {
     });
     const { error } = schema.validate(req.body);
     if (error) {
-        console.log(`error in login validation ${error}`);
+        logger.error(`error in login validation ${error}`);
         return res.status(400)
             .json({ message: "Bad Request" })
     }

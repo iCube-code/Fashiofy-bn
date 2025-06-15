@@ -8,12 +8,12 @@ const { InitializeLog } = require("./src/middleware/logMiddleware");
 
 dotenv.config();
 
-const registerRouter_v1 = require('./src/Routes/signup');
-const loginRouter_v1 = require('./src/Routes/login');
+const registerRouter_v1 = require('./src/Routes/router');
+const loginRouter_v1 = require('./src/Routes/router');
 
-const allProductsRouter_v1 = require('./src/Routes/productRoutes');
+const allProductsRouter_v1 = require('./src/Routes/router');
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
-const productRoutes = require('./src/Routes/productRoutes');
+const productRoutes = require('./src/Routes/router');
 const app = express();
 const PORT = process.env.PORT ?? 8080;
 

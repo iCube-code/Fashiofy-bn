@@ -1,6 +1,7 @@
 const { Types } = require("mongoose");
 const ProductService = require("../service/Product.js");
-const ProductRating = require('../model/ProductRatingModel');
+const ProductRating = require('../model/ProductRatingModel.js');
+const logger = require("./src/utils/logger");
 
 
 // API for Fetch Product By ID
@@ -102,7 +103,7 @@ async function getAllProducts(req, res) {
         });
 
     } catch (err) {
-        console.log("Error in fetching all products:", err);
+        logger.error("Error in fetching all products:", err);
         res.status(500).json({ message: "Something went wrong" });
     }
 }

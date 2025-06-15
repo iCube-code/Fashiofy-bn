@@ -2,6 +2,7 @@ const Product = require("../model/ProductModel");
 const ProductRating = require("../model/ProductRatingModel");
 const ProductImage = require("../model/ProductImageModel");
 const { default: mongoose } = require("mongoose");
+const logger = require("./src/utils/logger");
 
 class ProductService {
    async getProducts() {
@@ -9,7 +10,7 @@ class ProductService {
             const result = await Product.find().lean();
             return result;
         } catch (err) {
-            console.log("Error in getting all products", err);
+           logger.error("Error in getting all products", err);
         }
     }
   getProductById = async (id) => {
