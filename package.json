@@ -12,7 +12,6 @@
   "author": "Icube-code",
   "license": "MIT",
   "dependencies": {
-    "Fashiofy": "file:",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -21,12 +20,14 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
-    "mongoose": "^8.15.1",
-    "nodemon": "^3.1.10",
-    "winston": "^3.17.0"
+    "Fashiofy": "file:",
     "http-errors": "^2.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1",
+    "morgan": "^1.10.0",
     "nodemailer": "^7.0.3",
+    "nodemon": "^3.1.10",
+    "winston": "^3.17.0"
   }
 }

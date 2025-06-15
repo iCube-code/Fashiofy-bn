@@ -15,12 +15,14 @@ const register = async (req, res, next) => {
 
     if (!firstName || !lastName || !email || !password || !phoneNumber) {
       const error = createHttpError(400, "All fields are required");
+      logger.error("All fields are required");
       return next(error);
     }
 
     const isUserPresent = await User.findOne({ email });
     if (isUserPresent) {
       const error = createHttpError(400, "User already exit!");
+      logger.error("User already exit!");
       return next(error);
     }
 
@@ -41,6 +43,7 @@ async function login(req, res) {
     let user = new userService();
     const existingUser = await user.getUser(req.body.email);
     if (!existingUser) {
+      logger.error("User not found");
       return res
         .status(403)
         .json({ message: "User not found", success: false });
@@ -51,14 +54,17 @@ async function login(req, res) {
     );
 
     if (!isPasswordValid) {
-      return res
-        .status(403)
+      logger.error("wrong password");
+      return res.status(403)
         .json({ message: "wrong password", success: false });
+
+
     }
     const token = generateToken(existingUser);
     res.json({ token: token });
   } catch (err) {
     res.status(401).json({ message: "Invalid Credentials" });
+    logger.error("Invalid Credentials");
   }
 }
 

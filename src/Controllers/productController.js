@@ -1,5 +1,8 @@
 const { Types } = require("mongoose");
 const ProductService = require("../service/Product.js");
+const ProductRating = require('../model/ProductRatingModel.js');
+const logger = require("../utils/logger.js");
+
 
 // API for Fetch Product By ID
 const getProductById = async (req, res) => {
@@ -11,6 +14,7 @@ const getProductById = async (req, res) => {
 
     // Validate the ID
     if (!Types.ObjectId.isValid(id)) {
+      logger.error("Invalid Product ID");
       return res.status(400).json({
         message: "Invalid Product ID",
       });
@@ -19,6 +23,7 @@ const getProductById = async (req, res) => {
     // Check the Product Exists Or not
     const product = await productService.getProductById(id);
     if (!product) {
+      logger.error("Product Not Found");
       return res.status(404).json({
         message: "Product Not Found",
       });
@@ -59,10 +64,51 @@ const getProductById = async (req, res) => {
       },
     });
   } catch (e) {
+    logger.error( "Internal Server Error");
     return res
       .status(500)
       .json({ message: "Internal Server Error", error: e.message });
   }
 };
+// get all products
+async function getAllProducts(req, res) {
+    try {
+        const product = new ProductService();
 
-module.exports = { getProductById };
+        //  all products 
+        const productsList = await product.getProducts();
+
+        //  aggregated ratings per product
+        const ratings = await ProductRating.aggregate([
+            {
+                $group: {
+                    _id: '$fk_product_id',
+                    averageRating: { $avg: '$rating' },
+                    totalReviews: { $sum: 1 }
+                }
+            }
+        ]);
+        const allProducts = productsList.map(prod => {
+            const matchedRating = ratings.find(r => r._id.toString() === prod._id.toString());
+            return {
+                ...prod,
+                rating: matchedRating ? matchedRating.averageRating.toFixed(1) : 0,
+                reviews: matchedRating ? matchedRating.totalReviews : 0
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Fetched all products successfully!",
+            data: {
+                allProducts
+            }
+        });
+
+    } catch (err) {
+        logger.error("Error in fetching all products:", err);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+}
+
+module.exports = { getProductById,getAllProducts };
