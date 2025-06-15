@@ -1,9 +1,13 @@
-const { userService } = require('../service/login');
-const { generateToken } = require('../utils/jwtUtils');
-const bcrypt = require('bcrypt');
+const { userService } = require("../service/login");
+const { generateToken } = require("../utils/jwtUtils");
+const bcrypt = require("bcrypt");
 const createHttpError = require("http-errors");
 const User = require("../model/UserModel");
-
+const logger = require("../utils/logger");
+const { forgotPasswordService } = require("../service/userService");
+const { generateForgotPasswordLink } = require("../utils/linkGenerator");
+const sendEmail = require("../utils/mailer");
+const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 
 const register = async (req, res, next) => {
   try {
@@ -30,27 +34,63 @@ const register = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-
-  
 };
 
 async function login(req, res) {
-    try {
-        let user = new userService();
-        const existingUser = await user.getUser(req.body.email);
-        if (!existingUser) {
-            return res.status(403).json({ message: 'User not found', success: false });
-        }
-        const isPasswordValid = await bcrypt.compare(req.body.password, existingUser.password);
-
-        if (!isPasswordValid) {
-            return res.status(403).json({ message: 'wrong password', success: false });
-        }
-        const token = generateToken(existingUser);
-        res.json({ token: token });
-
-    } catch (err) {
-        res.status(401).json({ message: "Invalid Credentials" });
+  try {
+    let user = new userService();
+    const existingUser = await user.getUser(req.body.email);
+    if (!existingUser) {
+      return res
+        .status(403)
+        .json({ message: "User not found", success: false });
     }
+    const isPasswordValid = await bcrypt.compare(
+      req.body.password,
+      existingUser.password
+    );
+
+    if (!isPasswordValid) {
+      return res
+        .status(403)
+        .json({ message: "wrong password", success: false });
+    }
+    const token = generateToken(existingUser);
+    res.json({ token: token });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid Credentials" });
+  }
 }
-module.exports = {register, login }
+
+async function forgotPassword(req, res) {
+  try {
+    const { isEmailFound, userData } = await forgotPasswordService(
+      req.body.email
+    );
+
+    if (isEmailFound === false && typeof userData === "undefined") {
+      return res.status(404).json({
+        message:
+          "if this mail is exists we will send a mail for resetting password",
+      });
+    }
+
+    if (isEmailFound && typeof userData !== "undefined") {
+      let forgotPasswordLink = await generateForgotPasswordLink(userData);
+      await sendEmail(
+        userData.userEmail,
+        "Reset Your Password",
+        forgotPasswordTemplate(userData.userFullName, forgotPasswordLink)
+      );
+      logger.info("Forgot password mail sent");
+    }
+
+    res.status(200).json({
+      message:
+        "if this mail is exists we will send a mail for resetting password",
+    });
+  } catch (error) {
+    logger.error(`Error occured at forgot password api ${error}`);
+  }
+}
+module.exports = { register, login, forgotPassword };
