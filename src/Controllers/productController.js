@@ -1,6 +1,7 @@
 const { Types } = require("mongoose");
 const ProductService = require("../service/Product.js");
 const ProductRating = require('../model/ProductRatingModel.js');
+const ProductImage = require("../model/ProductImageModel");
 const logger = require("../utils/logger.js");
 
 
@@ -32,7 +33,7 @@ const getProductById = async (req, res) => {
     // Get all reviews and ratings of Product By ID
     const ratingsAndCommentsOfProduct =
       await productService.getRatingsAndCommentsOfProduct(id);
-    
+
     // Avg rating of the Product
     let avgRating = 0;
     if (ratingsAndCommentsOfProduct.length > 0) {
@@ -57,14 +58,14 @@ const getProductById = async (req, res) => {
       message: `Fetched Product Successfully`,
       data: {
         ...product,
-        totalReviews: ratingsAndCommentsOfProduct.length,
-         rating: Number(avgRating.toFixed(1)),
+        rating: Number(avgRating.toFixed(1)),
+        reviews: ratingsAndCommentsOfProduct.length,
         images,
         comments,
       },
     });
   } catch (e) {
-    logger.error( "Internal Server Error");
+    logger.error("Internal Server Error");
     return res
       .status(500)
       .json({ message: "Internal Server Error", error: e.message });
@@ -72,43 +73,46 @@ const getProductById = async (req, res) => {
 };
 // get all products
 async function getAllProducts(req, res) {
-    try {
-        const product = new ProductService();
+  try {
+    const product = new ProductService();
 
-        //  all products 
-        const productsList = await product.getProducts();
+    //  all products 
+    const productsList = await product.getProducts();
 
-        //  aggregated ratings per product
-        const ratings = await ProductRating.aggregate([
-            {
-                $group: {
-                    _id: '$fk_product_id',
-                    averageRating: { $avg: '$rating' },
-                    totalReviews: { $sum: 1 }
-                }
-            }
-        ]);
-        const allProducts = productsList.map(prod => {
-            const matchedRating = ratings.find(r => r._id.toString() === prod._id.toString());
-            return {
-                ...prod,
-                rating: matchedRating ? matchedRating.averageRating.toFixed(1) : 0,
-                reviews: matchedRating ? matchedRating.totalReviews : 0
-            };
-        });
+    //  aggregated ratings per product
+    const ratings = await ProductRating.aggregate([
+      {
+        $group: {
+          _id: '$fk_product_id',
+          averageRating: { $avg: '$rating' },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
 
-        res.status(200).json({
-            success: true,
-            message: "Fetched all products successfully!",
-            data: {
-                allProducts
-            }
-        });
+    const images = await ProductImage.find();
+    const allProducts = productsList.map(prod => {
+      const matchedRating = ratings.find(r => r._id.toString() === prod._id.toString());
+      const productImages = images.filter(i => i.fk_product_id.toString() === prod._id.toString()).map(img => img.image);
+      const { fk_user_id, ...productData } = prod;
+      return {
+        ...productData,
+        rating: matchedRating ? matchedRating.averageRating.toFixed(1) : 0,
+        reviews: matchedRating ? matchedRating.totalReviews : 0,
+        images: productImages
+      };
+    });
 
-    } catch (err) {
-        logger.error("Error in fetching all products:", err);
-        res.status(500).json({ message: "Something went wrong" });
-    }
+    res.status(200).json({
+      success: true,
+      message: "Fetched all products successfully!",
+      data: allProducts
+    });
+
+  } catch (err) {
+    logger.error("Error in fetching all products:", err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 }
 
-module.exports = { getProductById,getAllProducts };
+module.exports = { getProductById, getAllProducts };
