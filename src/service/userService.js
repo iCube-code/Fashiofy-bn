@@ -23,4 +23,37 @@ async function forgotPasswordService(email) {
   }
 }
 
-module.exports = { forgotPasswordService };
+async function resetPasswordService(userId, hashedPassword) {
+  try {
+    if (!userId || !hashedPassword) {
+      return {
+        status: 400,
+        message: "User ID and password are required",
+      };
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+      };
+    }
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return {
+      status: 200,
+      message: "Password reset successfully",
+    };
+  } catch (error) {
+    logger?.error(`Error occurred in resetPasswordService: ${error}`);
+    return {
+      status: 500,
+      message: "Internal Server Error",
+    };
+  }
+}
+
+module.exports = { forgotPasswordService, resetPasswordService };
