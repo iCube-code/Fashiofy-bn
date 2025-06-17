@@ -8,6 +8,7 @@ const { forgotPasswordService } = require("../service/userService");
 const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
+const { resetPasswordService } = require("../service/userService");
 
 const register = async (req, res, next) => {
   try {
@@ -55,10 +56,9 @@ async function login(req, res) {
 
     if (!isPasswordValid) {
       logger.error("wrong password");
-      return res.status(403)
+      return res
+        .status(403)
         .json({ message: "wrong password", success: false });
-
-
     }
     const token = generateToken(existingUser);
     res.json({ token: token });
@@ -99,4 +99,35 @@ async function forgotPassword(req, res) {
     logger.error(`Error occured at forgot password api ${error}`);
   }
 }
-module.exports = { register, login, forgotPassword };
+
+async function resetPassword(req, res) {
+  try {
+    const { userId, newPassword } = req.body;
+
+    if (!userId || !newPassword) {
+      return res.status(400).json({
+        message: "User ID and new password are required",
+      });
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character",
+      });
+    }
+
+    // Call the service
+    const result = await resetPasswordService(userId, newPassword);
+
+    return res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    logger?.error(`Error in resetPassword controller: ${error}`);
+    return res.status(500).json({ message: "Error resetting password" });
+  }
+}
+
+module.exports = { register, login, forgotPassword, resetPassword };
