@@ -13,7 +13,7 @@ const authMiddleWare = async (req, res, next) => {
         }
         const decodedToken = jwt.verify(token, secretKey);
         userData = decodedToken;
-        const user = await User.findById(userData._id);
+        const user = await User.findById(userData.id);
         req.user = user;
         next();
 
