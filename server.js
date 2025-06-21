@@ -8,10 +8,6 @@ const { InitializeLog } = require("./src/middlewares/logMiddleware");
 
 dotenv.config();
 
-const registerRouter_v1 = require('./src/Routes/router');
-const loginRouter_v1 = require('./src/Routes/router');
-
-const allProductsRouter_v1 = require('./src/Routes/router');
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
 const routes = require('./src/Routes/router');
 const app = express();
@@ -36,12 +32,7 @@ app.use(express.json()); // parse the incomming req into JSON formate
 app.use(globalErrorHandler);
 
 // authentication Endpoints
-app.use("/api/user", routes);
-// other Endpoints
-// fetch prodct by id
-app.use('/api/product',routes);
-//fetch all products
-app.use("/api/products",routes);
+app.use("/api/v1", routes);
 
 app.listen(PORT, () => {
   try {
