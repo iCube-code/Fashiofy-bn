@@ -8,10 +8,8 @@ const { InitializeLog } = require("./src/middlewares/logMiddleware");
 
 dotenv.config();
 
-const registerRouter_v1 = require("./src/Routes/signup");
-const loginRouter_v1 = require("./src/Routes/login");
 const globalErrorHandler = require("./src/middlewares/globalErrorHandler");
-const productRoutes = require('./src/Routes/productRoutes');
+const routes = require("./src/Routes/router");
 const app = express();
 const PORT = process.env.PORT ?? 8080;
 
@@ -19,9 +17,6 @@ app.use(express.json({ extended: true }));
 
 app.use(bodyParser.json());
 app.use(cors());
-app.use("/api", loginRouter_v1);
-
-app.use(express.json());
 app.use(express.urlencoded());
 app.use(InitializeLog);
 
@@ -29,21 +24,16 @@ app.use("/healthcheck", (req, res) => {
   res.status(200).json({ message: "Everything is working as expected" });
 });
 
-// //Root Endpoint
-// app.get("/", (req,res) => {
-//   res.json({message: "Hello from Fashiofy server!"});
-// })
-
-// Middlewares
-app.use(express.json()); // parse the incomming req into JSON formate
-
-// other Endpoints
-app.use("/api/user", registerRouter_v1);
-app.use('/api/product',productRoutes);
-
 // Global error handler
 app.use(globalErrorHandler);
 
+// authentication Endpoints
+app.use("/api/user", routes);
+// other Endpoints
+// fetch prodct by id
+app.use("/api/product", routes);
+//fetch all products
+app.use("/api/products", routes);
 app.listen(PORT, () => {
   try {
     logger.info(`Server is running on http://localhost:${PORT}`);
