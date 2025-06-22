@@ -78,7 +78,8 @@ async function forgotPassword(req, res) {
     );
 
     const defaultResponse = {
-      message: "If this email exists, a password reset link has been sent.",
+      message:
+        "if this mail is exists we will send a mail for resetting password.",
     };
 
     if (error) {
