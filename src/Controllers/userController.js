@@ -105,8 +105,7 @@ async function forgotPassword(req, res) {
     logger.info(`Password reset email sent to: ${userData.userEmail}`);
     return res.status(200).json(defaultResponse);
   } catch (error) {
-    const errorId = generateErrorId();
-    logger.error(`Forgot password error [${errorId}]: ${error.message}`, {
+    logger.error(`Forgot password error: ${error.message}`, {
       stack: error.stack,
       email,
     });
@@ -114,7 +113,6 @@ async function forgotPassword(req, res) {
     return res.status(500).json({
       success: false,
       message: "An error occurred. Please try again later.",
-      errorId,
     });
   }
 }
