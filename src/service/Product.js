@@ -22,7 +22,7 @@ class ProductService {
   getRatingsAndCommentsOfProduct = async (productId) => {
     const ratingsAndComments = await ProductRating.find({
       fk_product_id: new mongoose.Types.ObjectId(productId),
-    });
+    }).populate("fk_user_id","firstName lastName -_id");
     return ratingsAndComments;
   };
 

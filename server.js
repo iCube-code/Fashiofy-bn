@@ -28,10 +28,11 @@ app.use("/healthcheck", (req, res) => {
 
 // Middlewares
 app.use(express.json()); // parse the incomming req into JSON formate
+
 // Global error handler
 app.use(globalErrorHandler);
 
-// authentication Endpoints
+// Routes
 app.use("/api/v1", routes);
 
 app.listen(PORT, () => {
