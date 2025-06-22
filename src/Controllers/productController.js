@@ -14,7 +14,7 @@ const getProductById = async (req, res) => {
 
     // TODO Validate the ID
     if (!id) {
-      logger.error("Something went wrong");
+      logger.error("Product ID is required");
       return res.status(400).json({
         message: "Something went wrong",
       });
@@ -22,7 +22,7 @@ const getProductById = async (req, res) => {
 
     // Validate the ID
     if (!Types.ObjectId.isValid(id)) {
-      logger.error("Something went wrong");
+      logger.error("Invalid Product ID");
       return res.status(400).json({
         message: "Something went wrong",
       });
@@ -78,10 +78,10 @@ const getProductById = async (req, res) => {
       },
     });
   } catch (e) {
-    logger.error("Internal Server Error");
+    logger.error("ERROR IN GETTING PRODUCT BY ID: ",e);
     return res
       .status(500)
-      .json({ message: "Internal Server Error", error: e.message });
+      .json({ message: "Internal Server Error" });
   }
 };
 // get all products
