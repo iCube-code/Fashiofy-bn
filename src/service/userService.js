@@ -1,9 +1,33 @@
 const User = require("../model/UserModel");
 const logger = require("../utils/logger");
+const Validator = require("../utils/validator");
 
 async function forgotPasswordService(email) {
   try {
-    const isExistingUser = await User.findOne({ email }).select("-password");
+    if (!email || typeof email !== "string") {
+      return {
+        isEmailFound: false,
+        error: "Invalid email format",
+      };
+    }
+
+    const emailValidator = new Validator();
+    const validEmail = emailValidator.validateEmail(email);
+
+    if (
+      validEmail === "Not a Valid Email" ||
+      validEmail === "Something went wrong"
+    ) {
+      return {
+        isEmailFound: false,
+        error: `Validation failed: ${validEmail}`,
+      };
+    }
+
+    const isExistingUser = await User.findOne({ email: validEmail })
+      .select("firstName lastName email _id")
+      .lean();
+
     if (!isExistingUser) {
       return {
         isEmailFound: false,
@@ -11,15 +35,23 @@ async function forgotPasswordService(email) {
     }
 
     const userData = {
-      userid: isExistingUser.id,
-      userFullName: `${isExistingUser.firstName} ${isExistingUser.lastName}`,
-      userEmail: `${isExistingUser.email}`,
+      userid: isExistingUser._id,
+      userFullName: `${isExistingUser.firstName || ""} ${
+        isExistingUser.lastName || ""
+      }`.trim(),
+      userEmail: isExistingUser.email,
     };
 
     return { isEmailFound: true, userData };
   } catch (error) {
-    return error;
-    logger.error(error);
+    logger.error(`Error in forgotPasswordService : ${error.message}`, {
+      stack: error.stack,
+      email,
+    });
+    return {
+      isEmailFound: false,
+      error: "Internal server error",
+    };
   }
 }
 
