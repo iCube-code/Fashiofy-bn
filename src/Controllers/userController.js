@@ -48,7 +48,7 @@ async function login(req, res) {
       logger.error("User not found");
       return res
         .status(403)
-        .json({ message: "User not found", success: false });
+        .json({ message: "User not found", status: false });
     }
     const isPasswordValid = await bcrypt.compare(
       req.body.password,
@@ -59,7 +59,7 @@ async function login(req, res) {
       logger.error("wrong password");
       return res
         .status(403)
-        .json({ message: "wrong password", success: false });
+        .json({ message: "wrong password", status: false });
     }
 
     const token = generateToken(existingUser);
