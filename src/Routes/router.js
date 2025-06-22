@@ -18,6 +18,6 @@ router.post("/user/account/reset-password", resetPassword);
 
 router.get("/products/:id", getProductById);
 
-router.post("/products/cart/add", auth, addToCart);
+router.post("/products/cart/add",auth,addToCart);
 
 module.exports = router;
