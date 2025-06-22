@@ -9,6 +9,7 @@ const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 const { resetPasswordService } = require("../service/userService");
+const { secretKey } = require("../config/jwtConfig");
 
 const register = async (req, res, next) => {
   try {
@@ -60,11 +61,12 @@ async function login(req, res) {
         .status(403)
         .json({ message: "wrong password", success: false });
     }
+    
     const token = generateToken(existingUser);
     res.json({ token: token });
   } catch (err) {
+    logger.error("Invalid Credentials",err);
     res.status(401).json({ message: "Invalid Credentials" });
-    logger.error("Invalid Credentials");
   }
 }
 
