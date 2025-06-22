@@ -57,7 +57,10 @@ const getProductById = async (req, res) => {
         _id: eachComment._id,
         comment: eachComment.comment,
         rating: eachComment.rating,
-        user: eachComment.fk_user_id,
+        user:
+          eachComment.fk_user_id.firstName +
+          " " +
+          eachComment.fk_user_id.lastName,
       };
     });
 
