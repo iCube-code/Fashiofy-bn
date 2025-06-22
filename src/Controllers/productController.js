@@ -114,14 +114,14 @@ async function getAllProducts(req, res) {
       const { fk_user_id, ...productData } = prod;
       return {
         ...productData,
-        rating: matchedRating ? matchedRating.averageRating.toFixed(1) : 0,
+        rating: matchedRating ? Number(matchedRating.averageRating.toFixed(1)) : 0,
         reviews: matchedRating ? matchedRating.totalReviews : 0,
         images: productImages,
       };
     });
 
     res.status(200).json({
-      success: true,
+      status: true,
       message: "Fetched all products successfully!",
       data: allProducts,
     });

@@ -5,6 +5,7 @@ function generateToken(user) {
     id: user._id,
     userName: user.firstName + user.lastName ?? '',
     email: user.email,
+    role: user.fk_role_id?.roleName ?? "User"
   };
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 24 * 60 * 60 });
 }
