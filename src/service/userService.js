@@ -44,13 +44,10 @@ async function forgotPasswordService(email) {
 
     return { isEmailFound: true, userData };
   } catch (error) {
-    logger.error(
-      `Error in forgotPasswordService [${generateErrorId()}]: ${error.message}`,
-      {
-        stack: error.stack,
-        email,
-      }
-    );
+    logger.error(`Error in forgotPasswordService : ${error.message}`, {
+      stack: error.stack,
+      email,
+    });
     return {
       isEmailFound: false,
       error: "Internal server error",

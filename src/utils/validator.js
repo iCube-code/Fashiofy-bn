@@ -6,7 +6,7 @@ class Validator {
     const schema = Joi.object({
       email: Joi.string()
         .email({
-          tlds: { allow: true },
+          tlds: { allow: false },
           minDomainSegments: 2,
         })
         .required(),

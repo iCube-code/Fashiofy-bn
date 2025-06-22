@@ -9,7 +9,6 @@ const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 const { resetPasswordService } = require("../service/userService");
-const generateErrorId = require("../utils/errorIdGenerator");
 const { secretKey } = require("../config/jwtConfig");
 
 const register = async (req, res, next) => {
