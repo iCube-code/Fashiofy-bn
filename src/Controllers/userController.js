@@ -9,6 +9,7 @@ const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 const { resetPasswordService } = require("../service/userService");
+const generateErrorId = require("../utils/errorIdGenerator");
 
 const register = async (req, res, next) => {
   try {
@@ -69,34 +70,50 @@ async function login(req, res) {
 }
 
 async function forgotPassword(req, res) {
+  const { email } = req.body;
+
   try {
-    const { isEmailFound, userData } = await forgotPasswordService(
-      req.body.email
+    const { isEmailFound, userData, error } = await forgotPasswordService(
+      email
     );
 
-    if (isEmailFound === false && typeof userData === "undefined") {
-      return res.status(200).json({
-        message:
-          "if this mail is exists we will send a mail for resetting password",
+    const defaultResponse = {
+      message: "If this email exists, a password reset link has been sent.",
+    };
+
+    if (error) {
+      logger.warn(`Invalid email or service error: ${email}`, { error });
+      return res.status(400).json({
+        message: "Invalid email format or service error",
       });
     }
 
-    if (isEmailFound && typeof userData !== "undefined") {
-      let forgotPasswordLink = await generateForgotPasswordLink(userData);
-      await sendEmail(
-        userData.userEmail,
-        "Reset Your Password",
-        forgotPasswordTemplate(userData.userFullName, forgotPasswordLink)
-      );
-      logger.info("Forgot password mail sent");
+    if (!isEmailFound || !userData) {
+      logger.info(`Password reset requested for non-existent email: ${email}`);
+      return res.status(200).json(defaultResponse);
     }
 
-    res.status(200).json({
-      message:
-        "if this mail is exists we will send a mail for resetting password",
-    });
+    const forgotPasswordLink = await generateForgotPasswordLink(userData);
+    await sendEmail(
+      userData.userEmail,
+      "Reset Your Password",
+      forgotPasswordTemplate(userData.userFullName, forgotPasswordLink)
+    );
+
+    logger.info(`Password reset email sent to: ${userData.userEmail}`);
+    return res.status(200).json(defaultResponse);
   } catch (error) {
-    logger.error(`Error occured at forgot password api ${error}`);
+    const errorId = generateErrorId();
+    logger.error(`Forgot password error [${errorId}]: ${error.message}`, {
+      stack: error.stack,
+      email,
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred. Please try again later.",
+      errorId,
+    });
   }
 }
 
