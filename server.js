@@ -34,6 +34,8 @@ app.use("/api/user", routes);
 app.use("/api/product", routes);
 //fetch all products
 app.use("/api/products", routes);
+app.use("/api/v1", routes);
+
 app.listen(PORT, () => {
   try {
     logger.info(`Server is running on http://localhost:${PORT}`);
