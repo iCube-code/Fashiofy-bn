@@ -7,6 +7,7 @@ const { getProductById } = require("../Controllers/productController");
 const { getAllProducts } = require("../Controllers/productController");
 const { resetPassword } = require("../Controllers/userController");
 const { addToCart } = require("../Controllers/cartController");
+const { addToWishList } = require("../Controllers/wishlistController");
 const auth = require("../middlewares/AuthMiddleware");
 
 router.post("/user/account/new", register);
@@ -18,6 +19,8 @@ router.post("/user/account/reset-password", resetPassword);
 
 router.get("/products/:id", getProductById);
 
-router.post("/products/cart/add",auth,addToCart);
+router.post("/products/cart/add", auth, addToCart);
+
+router.post("/products/wishlist/add", auth, addToWishList);
 
 module.exports = router;
