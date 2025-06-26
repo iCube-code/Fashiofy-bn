@@ -36,9 +36,8 @@ async function forgotPasswordService(email) {
 
     const userData = {
       userid: isExistingUser._id,
-      userFullName: `${isExistingUser.firstName || ""} ${
-        isExistingUser.lastName || ""
-      }`.trim(),
+      userFullName: `${isExistingUser.firstName || ""} ${isExistingUser.lastName || ""
+        }`.trim(),
       userEmail: isExistingUser.email,
     };
 
@@ -88,4 +87,13 @@ async function resetPasswordService(userId, hashedPassword) {
   }
 }
 
-module.exports = { forgotPasswordService, resetPasswordService };
+async function verifyEmailService(email,userId) {
+  try {
+    const user = await User.findOne({email, _id: userId });
+    return user;
+  } catch (e) {
+    logger.error("error in user EmailVerfication",err);
+  }
+}
+
+module.exports = { forgotPasswordService, resetPasswordService,verifyEmailService };
