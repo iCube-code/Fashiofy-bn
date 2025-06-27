@@ -8,7 +8,7 @@ const { forgotPasswordService } = require("../service/userService");
 const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
-const { resetPasswordService } = require("../service/userService");
+const { resetPasswordService, verifyEmailService } = require("../service/userService");
 const { secretKey } = require("../config/jwtConfig");
 
 const register = async (req, res, next) => {
@@ -63,6 +63,7 @@ async function login(req, res) {
     }
 
     const token = generateToken(existingUser);
+    logger.info(token);
     res.json({ token: token });
   } catch (err) {
     logger.error("Invalid Credentials", err);
@@ -149,4 +150,28 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { register, login, forgotPassword, resetPassword };
+async function verifyEmail(req, res) {
+  const { email, userId } = req.body;
+  if (!email || !userId) {
+    logger.error("Email and userId are required");
+
+    return res.status(400).json({ message: "something went wrong" });
+  }
+  try {
+
+    const user = await verifyEmailService(email, userId);
+    if (!user) {
+      logger.error("User not found!");
+      return res.status(400).json({ message: "something went wrong" });
+    }
+    user.isActive = true;
+    await user.save();
+    res.status(200).json({ message: "Email verified successfully", status: true, isActive: user.isActive });
+  } catch (err) {
+    logger.error("Server error", err);
+
+    res.status(500).json({ message: "Internal Server error" });
+  }
+}
+
+module.exports = { register, login, forgotPassword, resetPassword, verifyEmail };
