@@ -10,6 +10,7 @@ const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 const { resetPasswordService, verifyEmailService } = require("../service/userService");
 const { secretKey } = require("../config/jwtConfig");
+const {emailVerificationLink} = require("../utils/emailVerficationLink");
 
 const register = async (req, res, next) => {
   try {
@@ -31,10 +32,11 @@ const register = async (req, res, next) => {
     const user = { firstName, lastName, email, password, phoneNumber };
     const newUser = User(user);
     await newUser.save();
+    await emailVerificationLink(newUser);
 
     res
       .status(201)
-      .json({ success: true, message: "New user created!", data: newUser });
+      .json({ success: true, message: "New user created! Verification email sent.", data: newUser });
   } catch (error) {
     next(error);
   }
