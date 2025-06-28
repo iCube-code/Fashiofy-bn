@@ -8,13 +8,12 @@ const { forgotPasswordService } = require("../service/userService");
 const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
-
-const {
-  resetPasswordService,
-  verifyEmailService,
-} = require("../service/userService");
-const { secretKey } = require("../config/jwtConfig");
+const { otpTemplate } = require("../Templates/OTPTemplate");
+const { resetPasswordService, verifyEmailService } = require("../service/userService");
 const { emailVerificationLink } = require("../utils/emailVerficationLink");
+const { generateOTP } = require('../utils/index')
+const { addUser, getUser, resetUser } = require('../utils/otpTracker')
+
 
 const register = async (req, res, next) => {
   try {
@@ -25,7 +24,6 @@ const register = async (req, res, next) => {
       logger.error("All fields are required");
       return next(error);
     }
-
     const isUserPresent = await User.findOne({ email });
     if (isUserPresent) {
       const error = createHttpError(400, "User already exit!");
@@ -54,8 +52,9 @@ async function login(req, res) {
     const existingUser = await user.getUser(req.body.email);
     if (!existingUser) {
       logger.error("User not found");
-
-      return res.status(403).json({ message: "User not found", status: false });
+      return res
+        .status(400)
+        .json({ message: "something went wrong", status: false });
     }
     const isPasswordValid = await bcrypt.compare(
       req.body.password,
@@ -64,16 +63,38 @@ async function login(req, res) {
 
     if (!isPasswordValid) {
       logger.error("wrong password");
-
-      return res.status(403).json({ message: "wrong password", status: false });
+      return res
+        .status(400)
+        .json({ message: "something went wrong", status: false });
     }
 
-    const token = generateToken(existingUser);
-    logger.info(token);
-    res.json({ token: token });
+    // generate OTP
+    let otp = generateOTP()
+
+    // send otp to the email
+    await sendEmail(
+      existingUser.email,
+      "Fashiofy Login Request",
+      otpTemplate(otp)
+    );
+
+    // add the otp + user data in the tracker
+    let payload = {
+      email: existingUser.email,
+      username: existingUser.firstName + " " + existingUser.lastName,
+      isActive: existingUser.isActive,
+      _id: existingUser._id,
+      // add role here
+      otp: otp
+    }
+
+    addUser(payload)
+
+    res.json({ status: true, message: "successful" });
+
   } catch (err) {
     logger.error("Invalid Credentials", err);
-    res.status(401).json({ message: "Invalid Credentials" });
+    res.status(400).json({ status: false, message: "Invalid Credentials" });
   }
 }
 
@@ -186,10 +207,41 @@ async function verifyEmail(req, res) {
   }
 }
 
-module.exports = {
-  register,
-  login,
-  forgotPassword,
-  resetPassword,
-  verifyEmail,
-};
+async function validateOTP(req, res) {
+
+  const { otp } = req.body;
+
+  if (otp.length > 6) {
+    logger.error('OTP should be 6 digits')
+    return res.status(400).json({ status: false, message: "Something went wrong" })
+  }
+
+  if (isNaN(otp)) {
+    logger.error("OTP should only be digits")
+    return res.status(400).json({ status: false, message: "Something went wrong" });
+  }
+
+  // check OTP
+  let data = getUser(otp)
+
+  // reset the email once verified
+  if (data.status) {
+
+    // reset the user tracker
+    resetUser(data.user.email)
+
+    // create JWT
+    let token = generateToken(data.user)
+
+    // return JWT
+    res.status(200).json({ status: true, token })
+
+  }
+  else {
+    logger.error("No Data Found in tracker")
+    res.status(400).json({ status: false, message: "Something went wrong" });
+  }
+
+}
+
+module.exports = { register, login, forgotPassword, resetPassword, verifyEmail, validateOTP };

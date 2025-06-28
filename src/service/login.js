@@ -6,10 +6,10 @@ const logger = require("../utils/logger");
 class userService {
     async getUser(email) {
         try {
-            return await User.findOne({ email }).populate('fk_role_id','roleName');
+            return await User.findOne({ email }).populate('fk_role_id', 'roleName');
 
         } catch (err) {
-           logger.error("error in getting user",err);
+            logger.error("error in getting user", err);
         }
     }
 }
