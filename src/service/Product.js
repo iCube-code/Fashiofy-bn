@@ -63,7 +63,7 @@ class ProductService {
 
       const [user, product] = await Promise.all([
         User.findById(userId).select("_id").lean(),
-        Product.findById(productId).select("_id originalPrice").lean(),
+        Product.findById(productId).select().lean(),
       ]);
 
       if (!user) {
