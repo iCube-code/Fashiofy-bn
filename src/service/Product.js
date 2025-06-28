@@ -40,37 +40,62 @@ class ProductService {
   };
 
   orderProduct = async (userId, productId) => {
-    const isUserExists = await User.findById({ _id: userId })
-      .select("_id")
-      .lean();
+    try {
+      if (!userId || !productId) {
+        logger.warn("Missing required parameters: userId or productId");
+        return {
+          success: false,
+          message: "User ID and Product ID are required",
+        };
+      }
 
-    if (!isUserExists) {
-      logger.warn("UserId not found");
-      return "User with this ID not found";
+      const existingOrder = await Orders.findOne({
+        fk_product_id: productId,
+        fk_user_id: userId,
+      }).lean();
+
+      if (existingOrder) {
+        logger.warn(
+          `Order already exists for user ${userId} and product ${productId}`
+        );
+        return { success: false, message: "Order already exists" };
+      }
+
+      const [user, product] = await Promise.all([
+        User.findById(userId).select("_id").lean(),
+        Product.findById(productId).select("_id originalPrice").lean(),
+      ]);
+
+      if (!user) {
+        logger.warn(`User not found: ${userId}`);
+        return { success: false, message: "User not found" };
+      }
+
+      if (!product) {
+        logger.warn(`Product not found: ${productId}`);
+        return { success: false, message: "Product not available" };
+      }
+
+      const newOrder = await Orders.create({
+        status: "Ordered",
+        price: product.originalPrice,
+        fk_product_id: productId,
+        fk_user_id: userId,
+      });
+
+      logger.info(`Order created successfully: ${newOrder._id}`);
+      return {
+        success: true,
+        message: "Order created successfully",
+        data: newOrder,
+      };
+    } catch (error) {
+      logger.error(`Error in orderProduct: ${error.message}`, error);
+      return {
+        success: false,
+        message: "Internal server error occurred while creating order",
+      };
     }
-
-    const isProductAvailable = await Product.findById({
-      _id: productId,
-    }).lean();
-
-    if (!isProductAvailable) {
-      logger.warn("Product with ID not found");
-      return "Product is not available";
-    }
-
-    const insertOrderIntoDb = await Orders.create({
-      status: "Ordered",
-      price: isProductAvailable.originalPrice,
-      fk_product_id: isProductAvailable._id,
-      fk_user_id: isUserExists._id,
-    });
-
-    if (!insertOrderIntoDb) {
-      logger.warn("Something went wrong while creating order");
-      return "Error creating order";
-    }
-
-    return insertOrderIntoDb;
   };
 }
 

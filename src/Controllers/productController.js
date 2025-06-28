@@ -133,17 +133,55 @@ async function getAllProducts(req, res) {
 
 async function orderProduct(req, res) {
   const { userId, productId } = req.body;
+
   try {
-    const order = new ProductService();
-    const placedOrder = await order.orderProduct(userId, productId);
+    if (!userId || !productId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and Product ID are required",
+      });
+    }
 
-    console.log(placedOrder);
+    const productService = new ProductService();
+    const result = await productService.orderProduct(userId, productId);
 
-    res.status(201).json({
-      data: placedOrder,
-    });
+    if (result.success) {
+      return res.status(201).json({
+        success: true,
+        message: result.message,
+        data: result.data,
+      });
+    } else {
+      let statusCode = 400;
+
+      if (
+        result.message.includes("not found") ||
+        result.message.includes("not available")
+      ) {
+        statusCode = 404;
+      } else if (result.message.includes("already exists")) {
+        statusCode = 409;
+      }
+
+      return res.status(statusCode).json({
+        success: false,
+        message: result.message,
+      });
+    }
   } catch (error) {
-    logger.error(`Internal server error, unable to place order : ${error}`);
+    logger.error(
+      `Internal server error in orderProduct controller: ${error.message}`,
+      {
+        userId,
+        productId,
+        error: error.stack,
+      }
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error occurred while processing your order",
+    });
   }
 }
 

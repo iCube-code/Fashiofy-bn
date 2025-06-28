@@ -37,13 +37,11 @@ const register = async (req, res, next) => {
     await newUser.save();
     await emailVerificationLink(newUser);
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "New user created! Verification email sent.",
-        data: newUser,
-      });
+    res.status(201).json({
+      success: true,
+      message: "New user created! Verification email sent.",
+      data: newUser,
+    });
   } catch (error) {
     next(error);
   }
@@ -170,13 +168,11 @@ async function verifyEmail(req, res) {
     }
     user.isActive = true;
     await user.save();
-    res
-      .status(200)
-      .json({
-        message: "Email verified successfully",
-        status: true,
-        isActive: user.isActive,
-      });
+    res.status(200).json({
+      message: "Email verified successfully",
+      status: true,
+      isActive: user.isActive,
+    });
   } catch (err) {
     logger.error("Server error", err);
 

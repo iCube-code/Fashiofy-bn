@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { login } = require("../Controllers/userController");
 const { loginValidation } = require("../middlewares/AuthValidation");
-const { getProductById } = require("../Controllers/productController");
+const {
+  getProductById,
+  orderProduct,
+} = require("../Controllers/productController");
 const { getAllProducts } = require("../Controllers/productController");
 const { resetPassword } = require("../Controllers/userController");
 const { addToCart } = require("../Controllers/cartController");
@@ -29,5 +32,7 @@ router.post("/products/cart/add", auth, addToCart);
 router.post("/products/wishlist/add", auth, addToWishList);
 
 router.post("/user/account/verify", auth, verifyEmail);
+
+router.post("/products/orders/add", auth, orderProduct);
 
 module.exports = router;
