@@ -78,10 +78,8 @@ const getProductById = async (req, res) => {
       },
     });
   } catch (e) {
-    logger.error("ERROR IN GETTING PRODUCT BY ID: ",e);
-    return res
-      .status(500)
-      .json({ message: "Internal Server Error" });
+    logger.error("ERROR IN GETTING PRODUCT BY ID: ", e);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 // get all products
@@ -114,7 +112,9 @@ async function getAllProducts(req, res) {
       const { fk_user_id, ...productData } = prod;
       return {
         ...productData,
-        rating: matchedRating ? Number(matchedRating.averageRating.toFixed(1)) : 0,
+        rating: matchedRating
+          ? Number(matchedRating.averageRating.toFixed(1))
+          : 0,
         reviews: matchedRating ? matchedRating.totalReviews : 0,
         images: productImages,
       };
@@ -131,4 +131,58 @@ async function getAllProducts(req, res) {
   }
 }
 
-module.exports = { getProductById, getAllProducts };
+async function orderProduct(req, res) {
+  const { userId, productId } = req.body;
+
+  try {
+    if (!userId || !productId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and Product ID are required",
+      });
+    }
+
+    const productService = new ProductService();
+    const result = await productService.orderProduct(userId, productId);
+
+    if (result.success) {
+      return res.status(201).json({
+        success: true,
+        message: result.message,
+        data: result.data,
+      });
+    } else {
+      let statusCode = 400;
+
+      if (
+        result.message.includes("not found") ||
+        result.message.includes("not available")
+      ) {
+        statusCode = 404;
+      } else if (result.message.includes("already exists")) {
+        statusCode = 409;
+      }
+
+      return res.status(statusCode).json({
+        success: false,
+        message: result.message,
+      });
+    }
+  } catch (error) {
+    logger.error(
+      `Internal server error in orderProduct controller: ${error.message}`,
+      {
+        userId,
+        productId,
+        error: error.stack,
+      }
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error occurred while processing your order",
+    });
+  }
+}
+
+module.exports = { getProductById, getAllProducts, orderProduct };
