@@ -5,7 +5,6 @@ const dotenv = require("dotenv");
 const InitializeDB = require("./src/config/db");
 const logger = require("./src/utils/logger");
 const { InitializeLog } = require("./src/middlewares/logMiddleware");
-const { users } = require('./src/utils/otpTracker')
 
 dotenv.config();
 
@@ -21,7 +20,7 @@ app.use(cors());
 app.use(InitializeLog);
 
 app.use("/healthcheck", (req, res) => {
-  res.status(200).json({ message: "Everything is working as expected", users });
+  res.status(200).json({ message: "Everything is working as expected" });
 });
 
 // Global error handler
