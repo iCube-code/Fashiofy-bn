@@ -8,9 +8,13 @@ const { forgotPasswordService } = require("../service/userService");
 const { generateForgotPasswordLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
-const { resetPasswordService, verifyEmailService } = require("../service/userService");
+
+const {
+  resetPasswordService,
+  verifyEmailService,
+} = require("../service/userService");
 const { secretKey } = require("../config/jwtConfig");
-const {emailVerificationLink} = require("../utils/emailVerficationLink");
+const { emailVerificationLink } = require("../utils/emailVerficationLink");
 
 const register = async (req, res, next) => {
   try {
@@ -34,9 +38,11 @@ const register = async (req, res, next) => {
     await newUser.save();
     await emailVerificationLink(newUser);
 
-    res
-      .status(201)
-      .json({ success: true, message: "New user created! Verification email sent.", data: newUser });
+    res.status(201).json({
+      success: true,
+      message: "New user created! Verification email sent.",
+      data: newUser,
+    });
   } catch (error) {
     next(error);
   }
@@ -48,9 +54,8 @@ async function login(req, res) {
     const existingUser = await user.getUser(req.body.email);
     if (!existingUser) {
       logger.error("User not found");
-      return res
-        .status(403)
-        .json({ message: "User not found", status: false });
+
+      return res.status(403).json({ message: "User not found", status: false });
     }
     const isPasswordValid = await bcrypt.compare(
       req.body.password,
@@ -59,9 +64,8 @@ async function login(req, res) {
 
     if (!isPasswordValid) {
       logger.error("wrong password");
-      return res
-        .status(403)
-        .json({ message: "wrong password", status: false });
+
+      return res.status(403).json({ message: "wrong password", status: false });
     }
 
     const token = generateToken(existingUser);
@@ -101,7 +105,9 @@ async function forgotPassword(req, res) {
     const forgotPasswordLink = await generateForgotPasswordLink(userData);
     await sendEmail(
       userData.userEmail,
-      "Reset Your Password",
+
+      "Reset your password",
+
       forgotPasswordTemplate(userData.userFullName, forgotPasswordLink)
     );
 
@@ -160,7 +166,6 @@ async function verifyEmail(req, res) {
     return res.status(400).json({ message: "something went wrong" });
   }
   try {
-
     const user = await verifyEmailService(email, userId);
     if (!user) {
       logger.error("User not found!");
@@ -168,7 +173,12 @@ async function verifyEmail(req, res) {
     }
     user.isActive = true;
     await user.save();
-    res.status(200).json({ message: "Email verified successfully", status: true, isActive: user.isActive });
+
+    res.status(200).json({
+      message: "Email verified successfully",
+      status: true,
+      isActive: user.isActive,
+    });
   } catch (err) {
     logger.error("Server error", err);
 
@@ -176,4 +186,10 @@ async function verifyEmail(req, res) {
   }
 }
 
-module.exports = { register, login, forgotPassword, resetPassword, verifyEmail };
+module.exports = {
+  register,
+  login,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+};
