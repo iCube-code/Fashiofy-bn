@@ -34,5 +34,6 @@ router.post("/products/wishlist/add", auth, addToWishList);
 router.post("/user/account/verify", auth, verifyEmail);
 
 router.post("/products/orders/add", auth, orderProduct);
+router.post("/user/account/verify",auth, verifyEmail);
 
 module.exports = router;
