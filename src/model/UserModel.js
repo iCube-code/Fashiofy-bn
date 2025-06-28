@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema(
 
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
 
     fk_role_id: {
