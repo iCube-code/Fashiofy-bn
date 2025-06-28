@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { loginValidation } = require("../middlewares/AuthValidation");
-const { getProductById, getAllProducts } = require("../Controllers/productController");
+const { getProductById, getAllProducts, orderProduct } = require("../Controllers/productController");
 const { addToCart } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
 const { register, forgotPassword, verifyEmail, login, resetPassword, validateOTP } = require("../Controllers/userController");
