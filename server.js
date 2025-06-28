@@ -17,7 +17,6 @@ app.use(express.json({ extended: true }));
 
 app.use(bodyParser.json());
 app.use(cors());
-app.use(express.urlencoded());
 app.use(InitializeLog);
 
 app.use("/healthcheck", (req, res) => {
@@ -27,13 +26,6 @@ app.use("/healthcheck", (req, res) => {
 // Global error handler
 app.use(globalErrorHandler);
 
-// authentication Endpoints
-app.use("/api/user", routes);
-// other Endpoints
-// fetch prodct by id
-app.use("/api/product", routes);
-//fetch all products
-app.use("/api/products", routes);
 app.use("/api/v1", routes);
 
 app.listen(PORT, () => {
