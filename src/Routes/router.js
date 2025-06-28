@@ -6,6 +6,7 @@ const { addToCart } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
 const { register, forgotPassword, verifyEmail, login, resetPassword, validateOTP } = require("../Controllers/userController");
 
+
 const auth = require("../middlewares/AuthMiddleware");
 
 // user
@@ -34,5 +35,6 @@ router.post("/products/cart/add", auth, addToCart);
 
 router.post("/products/wishlist/add", auth, addToWishList);
 
+router.post("/products/orders/add", auth, orderProduct);
 
 module.exports = router;

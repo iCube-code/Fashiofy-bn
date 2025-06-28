@@ -14,6 +14,7 @@ const { emailVerificationLink } = require("../utils/emailVerficationLink");
 const { generateOTP } = require('../utils/index')
 const { addUser, getUser, resetUser } = require('../utils/otpTracker')
 
+
 const register = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, phoneNumber } = req.body;
@@ -35,9 +36,11 @@ const register = async (req, res, next) => {
     await newUser.save();
     await emailVerificationLink(newUser);
 
-    res
-      .status(201)
-      .json({ success: true, message: "New user created! Verification email sent.", data: newUser });
+    res.status(201).json({
+      success: true,
+      message: "New user created! Verification email sent.",
+      data: newUser,
+    });
   } catch (error) {
     next(error);
   }
@@ -123,7 +126,9 @@ async function forgotPassword(req, res) {
     const forgotPasswordLink = await generateForgotPasswordLink(userData);
     await sendEmail(
       userData.userEmail,
-      "Reset Your Password",
+
+      "Reset your password",
+
       forgotPasswordTemplate(userData.userFullName, forgotPasswordLink)
     );
 
@@ -182,7 +187,6 @@ async function verifyEmail(req, res) {
     return res.status(400).json({ message: "something went wrong" });
   }
   try {
-
     const user = await verifyEmailService(email, userId);
     if (!user) {
       logger.error("User not found!");
@@ -190,7 +194,12 @@ async function verifyEmail(req, res) {
     }
     user.isActive = true;
     await user.save();
-    res.status(200).json({ message: "Email verified successfully", status: true, isActive: user.isActive });
+
+    res.status(200).json({
+      message: "Email verified successfully",
+      status: true,
+      isActive: user.isActive,
+    });
   } catch (err) {
     logger.error("Server error", err);
 

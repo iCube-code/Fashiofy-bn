@@ -27,7 +27,6 @@ app.use("/healthcheck", (req, res) => {
 // Global error handler
 app.use(globalErrorHandler);
 
-// Routes
 app.use("/api/v1", routes);
 
 app.listen(PORT, () => {
