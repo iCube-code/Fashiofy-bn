@@ -3,7 +3,24 @@ let users = []
 
 
 function addUser(data) {
-    users.push(data)
+    // check if the user is already exists
+    let user = users.filter(item => item.email === data.email)
+    // update user with new data
+    if (user.length !== 0) {
+        users = users.map((item) => {
+            if (item.email === data.email) {
+                return data
+            }
+            else {
+                return item
+            }
+        })
+    }
+    else {
+        // if not exists just add it
+        users.push(data)
+    }
+
 }
 
 function resetUser(email) {
@@ -11,12 +28,9 @@ function resetUser(email) {
 }
 
 function getUser(otp) {
-    console.log('otp', otp)
     let user = users.filter(item => {
-        console.log('item', item)
         return item.otp === parseInt(otp)
     })
-    console.log('user', user)
     if (user.length !== 0) {
         return { status: true, user: user[0] }
     }
@@ -29,6 +43,5 @@ function getUser(otp) {
 module.exports = {
     addUser,
     resetUser,
-    getUser,
-    users
+    getUser
 }
