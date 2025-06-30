@@ -3,6 +3,7 @@ const ProductService = require("../service/Product.js");
 const ProductRating = require("../model/ProductRatingModel.js");
 const ProductImage = require("../model/ProductImageModel");
 const logger = require("../utils/logger.js");
+const { CartService } = require("../service/cartService.js");
 
 // API for Fetch Product By ID
 const getProductById = async (req, res) => {
@@ -185,4 +186,8 @@ async function orderProduct(req, res) {
   }
 }
 
-module.exports = { getProductById, getAllProducts, orderProduct };
+module.exports = {
+  getProductById,
+  getAllProducts,
+  orderProduct,
+};

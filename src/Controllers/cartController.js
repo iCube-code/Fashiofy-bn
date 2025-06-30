@@ -39,7 +39,7 @@ const addToCart = async (req, res) => {
       logger.error("Product Not Found");
       return res.status(404).json({ message: "Something went wrong" });
     }
-    
+
     // Check Product Stock Availability
     if (existingProduct.stock <= 0) {
       logger.error("Product Out of Stock");
@@ -69,11 +69,50 @@ const addToCart = async (req, res) => {
     return res.json({
       message: "Product added to cart",
     });
-   
   } catch (e) {
     logger.error("ERROR IN ADDING TO CART", e);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-module.exports = { addToCart };
+//function to get all products in the cart for a user
+async function getCartProducts(req, res) {
+  const { userId } = req.body;
+
+  try {
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const cartService = new CartService();
+    const cartProducts = await cartService.getCartProducts(userId);
+
+    if (cartProducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No products found in the cart",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Fetched cart products successfully",
+      data: cartProducts,
+    });
+  } catch (error) {
+    logger.error(
+      `Internal server error in getCartProducts controller: ${error.message}`,
+      { userId, error: error.stack }
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error occurred while fetching cart products",
+    });
+  }
+}
+
+module.exports = { addToCart, getCartProducts };
