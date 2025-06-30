@@ -75,6 +75,7 @@ const addToCart = async (req, res) => {
   }
 };
 
+//function to get all products in the cart for a user
 async function getCartProducts(req, res) {
   const { userId } = req.body;
 
