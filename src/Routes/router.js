@@ -1,11 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const { loginValidation } = require("../middlewares/AuthValidation");
-const { getProductById, getAllProducts, orderProduct } = require("../Controllers/productController");
-const { addToCart } = require("../Controllers/cartController");
+const {
+  getProductById,
+  getAllProducts,
+  orderProduct,
+} = require("../Controllers/productController");
+const { addToCart, getCartProducts } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
-const { register, forgotPassword, verifyEmail, login, resetPassword, validateOTP } = require("../Controllers/userController");
-
+const {
+  register,
+  forgotPassword,
+  verifyEmail,
+  login,
+  resetPassword,
+  validateOTP,
+} = require("../Controllers/userController");
 
 const auth = require("../middlewares/AuthMiddleware");
 
@@ -23,8 +33,6 @@ router.post("/user/account/reset-password", resetPassword);
 
 router.post("/user/account/verify", auth, verifyEmail);
 
-
-
 // products
 
 router.get("/products/all", getAllProducts);
@@ -36,5 +44,7 @@ router.post("/products/cart/add", auth, addToCart);
 router.post("/products/wishlist/add", auth, addToWishList);
 
 router.post("/products/orders/add", auth, orderProduct);
+
+router.post("/products/cart/fetch", auth, getCartProducts);
 
 module.exports = router;

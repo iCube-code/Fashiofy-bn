@@ -12,6 +12,27 @@ class CartService {
     return cart;
   }
 
+  async getCartProducts(userId) {
+    try {
+      if (!userId) {
+        logger.warn("User ID is required to fetch cart products");
+        return { success: false, message: "User ID is required" };
+      }
+
+      const cartProducts = await Cart.find({ fk_user_id: userId }).populate(
+        "fk_product_id"
+      );
+
+      return cartProducts;
+    } catch (error) {
+      logger.error(`Error in getCartProducts: ${error.message}`, error);
+      return {
+        success: false,
+        message: "Internal server error occurred while fetching cart products",
+      };
+    }
+  }
+
   async addToCart(productId, userId) {
     const cartItem = {
       fk_product_id: productId,
