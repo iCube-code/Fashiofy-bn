@@ -10,7 +10,7 @@ const emailVerificationLink = async (user) => {
         }
         const SECRET = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 24 * 60 * 60 });
 
-        const verficationUrl = `https://fashiofy.onrender.com/account/verify/${SECRET}`;
+        const verficationUrl = `${process.env.CLIENT_URL}/account/verify/${SECRET}`;
 
         const htmlMessage = `
             <div  style="font-family: Arial, sans-serif;">

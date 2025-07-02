@@ -180,14 +180,14 @@ async function resetPassword(req, res) {
 }
 
 async function verifyEmail(req, res) {
-  const { email, userId } = req.body;
-  if (!email || !userId) {
+  const { email, _id } = req.user;
+  if (!email || !_id) {
     logger.error("Email and userId are required");
 
     return res.status(400).json({ message: "something went wrong" });
   }
   try {
-    const user = await verifyEmailService(email, userId);
+    const user = await verifyEmailService(email, _id);
     if (!user) {
       logger.error("User not found!");
       return res.status(400).json({ message: "something went wrong" });
