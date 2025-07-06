@@ -97,6 +97,28 @@ class ProductService {
       };
     }
   };
+
+  getAllOrders = async (userId) => {
+    try {
+      if (!userId) {
+        logger.warn("Missing required parameter: userId");
+        return {
+          success: false,
+          message: "User ID is required",
+        };
+      }
+      const orders = await Orders.find({
+        fk_user_id: userId,
+      }).lean();
+      return orders;
+    } catch (err) {
+      logger.error(`Internal server error ${err.mesage}`)
+      return res.status(500).json({
+        success: false,
+        mesage: "Internal server error"
+      })
+    }
+  }
 }
 
 module.exports = ProductService;

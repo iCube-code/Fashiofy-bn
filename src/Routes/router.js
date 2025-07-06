@@ -5,6 +5,7 @@ const {
   getProductById,
   getAllProducts,
   orderProduct,
+  getOrders,
 } = require("../Controllers/productController");
 const { addToCart, getCartProducts } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
@@ -46,5 +47,7 @@ router.post("/products/wishlist/add", auth, addToWishList);
 router.post("/products/orders/add", auth, orderProduct);
 
 router.post("/products/cart/fetch", auth, getCartProducts);
+
+router.get("/products/orders/fetch", auth, getOrders);
 
 module.exports = router;
