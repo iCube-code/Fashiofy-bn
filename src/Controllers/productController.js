@@ -185,9 +185,41 @@ async function orderProduct(req, res) {
     });
   }
 }
+async function getOrders(req, res) {
+  const { userId } = req.body;
+  try {
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
+    }
+    const productService = new ProductService();
+    const orders = await productService.getAllOrders(userId);
+    if (orders.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No orders found"
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Fetched orders successfully",
+      data: orders,
+    });
+
+  } catch (err) {
+    logger.error(`internal server error", ${err.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error occured while fetching orders"
+    });
+  }
+}
 
 module.exports = {
   getProductById,
   getAllProducts,
   orderProduct,
+  getOrders,
 };
