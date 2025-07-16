@@ -2,6 +2,8 @@ const { Types } = require("mongoose");
 const { CartService } = require("../service/cartService");
 const ProductService = require("../service/Product");
 const logger = require("../utils/logger");
+const ProductImage = require("../model/ProductImageModel");
+
 
 const addToCart = async (req, res) => {
   try {
@@ -77,10 +79,10 @@ const addToCart = async (req, res) => {
 
 //function to get all products in the cart for a user
 async function getCartProducts(req, res) {
-  const { userId } = req.body;
+  const { _id } = req.user;
 
   try {
-    if (!userId) {
+    if (!_id) {
       return res.status(400).json({
         success: false,
         message: "User ID is required",
@@ -88,24 +90,38 @@ async function getCartProducts(req, res) {
     }
 
     const cartService = new CartService();
-    const cartProducts = await cartService.getCartProducts(userId);
 
-    if (cartProducts.length === 0) {
+    const cartProducts = await cartService.getCartProducts(_id);
+
+    const images = await ProductImage.find();
+    
+    const allCartProducts = cartProducts.map((prod) => {
+      const cartProdImages = images
+        .filter((i) => i.fk_product_id.toString() === prod.fk_product_id._id.toString())
+        .map((img) => img.image);
+      const { fk_user_id, ...productData } = prod;
+      return {
+        ...productData,
+        images: cartProdImages,
+      };
+    });
+
+    if (allCartProducts.length === 0) {
       return res.status(404).json({
         success: false,
         message: "No products found in the cart",
       });
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Fetched cart products successfully",
-      data: cartProducts,
+      data: allCartProducts,
     });
   } catch (error) {
     logger.error(
       `Internal server error in getCartProducts controller: ${error.message}`,
-      { userId, error: error.stack }
+      { _id, error: error.stack }
     );
 
     return res.status(500).json({
