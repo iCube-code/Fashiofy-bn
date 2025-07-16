@@ -21,7 +21,7 @@ class CartService {
 
       const cartProducts = await Cart.find({ fk_user_id: userId }).populate(
         "fk_product_id"
-      );
+      ).lean();
 
       return cartProducts;
     } catch (error) {
