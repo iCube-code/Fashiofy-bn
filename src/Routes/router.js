@@ -19,6 +19,10 @@ const {
 } = require("../Controllers/userController");
 
 const auth = require("../middlewares/AuthMiddleware");
+const {
+  registerSeller,
+  verifySeller,
+} = require("../Controllers/sellerController");
 
 // user
 
@@ -49,5 +53,10 @@ router.post("/products/orders/add", auth, orderProduct);
 router.get("/products/cart/fetch", auth, getCartProducts);
 
 router.get("/products/orders/fetch", auth, getOrders);
+
+//Seller
+
+router.post("/seller/account/new", auth, registerSeller);
+router.post("/seller/account/new/verify", auth, verifySeller);
 
 module.exports = router;
