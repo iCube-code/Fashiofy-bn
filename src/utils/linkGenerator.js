@@ -2,14 +2,15 @@ const CryptoJS = require("crypto-js");
 const logger = require("./logger");
 
 const LINK_CONFIG = {
-  pathPrefix: "/forgot-password",
+  pathPrefixForForgotPassword: "/forgot-password",
+  pathPrefixForAccountVerification: "/verify-account",
   expirationMs: 5 * 60 * 1000,
 };
 
-async function generateForgotPasswordLink(userData) {
+async function generateLink(userData, issueType) {
   try {
-    if (!userData || !userData.userid) {
-      throw new Error("Invalid or missing user data");
+    if (!userData || !userData.userid || !issueType) {
+      throw new Error("Invalid or missing user data or issueType");
     }
     if (!process.env.CRYPTO_SECRET) {
       throw new Error("Missing CRYPTO_SECRET");
@@ -19,7 +20,7 @@ async function generateForgotPasswordLink(userData) {
     }
 
     const payload = JSON.stringify({
-      userid: userData.userid,
+      userid: userData.userid.toString(),
       expiresAt: Date.now() + LINK_CONFIG.expirationMs,
     });
 
@@ -28,15 +29,17 @@ async function generateForgotPasswordLink(userData) {
       process.env.CRYPTO_SECRET
     ).toString();
 
-    const forgotPasswordLink = `${process.env.CLIENT_URL.replace(/\/+$/, "")}${
-      LINK_CONFIG.pathPrefix
-    }/${encodeURIComponent(encryptedData)}`;
+    const generatedLink = `${process.env.CLIENT_URL.replace(/\/+$/, "")}${`${
+      issueType === "forgotPassword"
+        ? LINK_CONFIG.pathPrefixForForgotPassword
+        : LINK_CONFIG.pathPrefixForAccountVerification
+    }`}/${encodeURIComponent(encryptedData)}`;
 
-    return forgotPasswordLink;
+    return generatedLink;
   } catch (error) {
-    logger.error(`Error generating forgot password link: ${error.message}`);
-    throw new Error("Failed to generate forgot password link");
+    logger.error(`Error generating link: ${error.message}`);
+    throw new Error("Failed to generate link");
   }
 }
 
-module.exports = { generateForgotPasswordLink };
+module.exports = { generateLink };

@@ -65,6 +65,12 @@ const userSchema = new mongoose.Schema(
       ref: "Role",
       // required: [true, "Role is required"],
     },
+    organization: {
+      type: String,
+    },
+    shopAddress: {
+      type: String,
+    },
   },
 
   {
