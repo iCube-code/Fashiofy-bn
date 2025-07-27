@@ -5,15 +5,17 @@ const createHttpError = require("http-errors");
 const User = require("../model/UserModel");
 const logger = require("../utils/logger");
 const { forgotPasswordService } = require("../service/userService");
-const { generateForgotPasswordLink } = require("../utils/linkGenerator");
+const { generateLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
 const { otpTemplate } = require("../Templates/OTPTemplate");
-const { resetPasswordService, verifyEmailService } = require("../service/userService");
+const {
+  resetPasswordService,
+  verifyEmailService,
+} = require("../service/userService");
 const { emailVerificationLink } = require("../utils/emailVerficationLink");
-const { generateOTP } = require('../utils/index')
-const { addUser, getUser, resetUser } = require('../utils/otpTracker')
-
+const { generateOTP } = require("../utils/index");
+const { addUser, getUser, resetUser } = require("../utils/otpTracker");
 
 const register = async (req, res, next) => {
   try {
@@ -69,7 +71,7 @@ async function login(req, res) {
     }
 
     // generate OTP
-    let otp = generateOTP()
+    let otp = generateOTP();
 
     // send otp to the email
     await sendEmail(
@@ -85,13 +87,12 @@ async function login(req, res) {
       isActive: existingUser.isActive,
       _id: existingUser._id,
       // add role here
-      otp: otp
-    }
+      otp: otp,
+    };
 
-    addUser(payload)
+    addUser(payload);
 
     res.json({ status: true, message: "successful" });
-
   } catch (err) {
     logger.error("Invalid Credentials", err);
     res.status(400).json({ status: false, message: "Invalid Credentials" });
@@ -123,7 +124,7 @@ async function forgotPassword(req, res) {
       return res.status(200).json(defaultResponse);
     }
 
-    const forgotPasswordLink = await generateForgotPasswordLink(userData);
+    const forgotPasswordLink = await generateLink(userData, "forgotPassword");
     await sendEmail(
       userData.userEmail,
 
@@ -159,8 +160,7 @@ async function resetPassword(req, res) {
       });
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[\W_]).{8,}$/;
 
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -208,40 +208,46 @@ async function verifyEmail(req, res) {
 }
 
 async function validateOTP(req, res) {
-
   const { otp } = req.body;
 
   if (otp.length > 6) {
-    logger.error('OTP should be 6 digits')
-    return res.status(400).json({ status: false, message: "Something went wrong" })
+    logger.error("OTP should be 6 digits");
+    return res
+      .status(400)
+      .json({ status: false, message: "Something went wrong" });
   }
 
   if (isNaN(otp)) {
-    logger.error("OTP should only be digits")
-    return res.status(400).json({ status: false, message: "Something went wrong" });
+    logger.error("OTP should only be digits");
+    return res
+      .status(400)
+      .json({ status: false, message: "Something went wrong" });
   }
 
   // check OTP
-  let data = getUser(otp)
+  let data = getUser(otp);
 
   // reset the email once verified
   if (data.status) {
-
     // reset the user tracker
-    resetUser(data.user.email)
+    resetUser(data.user.email);
 
     // create JWT
-    let token = generateToken(data.user)
+    let token = generateToken(data.user);
 
     // return JWT
-    res.status(200).json({ status: true, token })
-
-  }
-  else {
-    logger.error("No Data Found in tracker")
+    res.status(200).json({ status: true, token });
+  } else {
+    logger.error("No Data Found in tracker");
     res.status(400).json({ status: false, message: "Something went wrong" });
   }
-
 }
 
-module.exports = { register, login, forgotPassword, resetPassword, verifyEmail, validateOTP };
+module.exports = {
+  register,
+  login,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  validateOTP,
+};
