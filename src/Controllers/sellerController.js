@@ -49,7 +49,6 @@ const registerSeller = async (req, res) => {
     return res.status(result.status).json({
       status: "success",
       message: result.message,
-      data: result.data,
     });
   } catch (error) {
     logger.error(`Error registering seller: ${error.message}`, {

@@ -64,7 +64,6 @@ async function sellerAccountService(
     return {
       status: 201,
       message: "Seller account successfully created. Verification email sent.",
-      data: { userId: user._id, email },
     };
   } catch (error) {
     logger.error(
