@@ -245,57 +245,103 @@ async function addProduct(req, res) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    if (!_id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const parsedProductSize =
+      typeof productSize === "string"
+        ? productSize
+            .split(",")
+            .map((size) => size.trim())
+            .filter((size) => size.length > 0)
+        : Array.isArray(productSize)
+        ? productSize
+        : null;
+
+    if (!parsedProductSize || parsedProductSize.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one product size is required" });
+    }
+
     if (!productImages || productImages.length === 0) {
       return res
         .status(400)
         .json({ message: "At least one image is required" });
     }
+
     if (productImages.length > 5) {
       return res.status(400).json({ message: "Maximum 5 images allowed" });
     }
 
-    if (!_id) {
-      return res.status(401).json({ message: "Unauthorized User" });
+    const price = parseFloat(productPrice);
+    const mrp = parseFloat(productMrp);
+    const stock = parseInt(productStock);
+
+    if (
+      isNaN(price) ||
+      price <= 0 ||
+      isNaN(mrp) ||
+      mrp <= 0 ||
+      price > mrp ||
+      isNaN(stock) ||
+      stock < 0
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid price, MRP, or stock values" });
     }
 
-    const base64Images = productImages.map(
-      (file) => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
+    const base64Images = productImages.map((file) =>
+      file.buffer.toString("base64")
     );
+
     const product = new ProductService();
     const result = await product.addProduct(
-      productName,
-      productBrand,
-      productDescription,
-      productCategory,
-      productPrice,
-      productMrp,
-      productSize,
-      productStock,
+      productName.trim(),
+      productBrand.trim(),
+      productDescription.trim(),
+      productCategory.trim(),
+      price,
+      mrp,
+      parsedProductSize,
+      stock,
       base64Images,
       _id
     );
-    return res.status(result.status).json({
-      message: result.message,
-    });
+
+    return res.status(result.status).json({ message: result.message });
   } catch (error) {
-    console.error("Internal Server Error:", error);
+    logger.error("Error in addProduct:", error);
+
     if (error instanceof multer.MulterError) {
-      if (error.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ message: "File size exceeds 5MB limit" });
-      }
-      if (error.code === "LIMIT_FILE_COUNT") {
-        return res.status(400).json({ message: "Maximum 5 images allowed" });
-      }
-      if (error.code === "LIMIT_UNEXPECTED_FILE") {
-        return res.status(400).json({
-          message:
-            "Unexpected field name. Use 'productImages' for file uploads",
-        });
-      }
+      const errorMessages = {
+        LIMIT_FILE_SIZE: "File size exceeds 5MB limit",
+        LIMIT_FILE_COUNT: "Maximum 5 images allowed",
+        LIMIT_UNEXPECTED_FILE: "Use 'productImages' for file uploads",
+      };
+      return res.status(400).json({
+        message: errorMessages[error.code] || "File upload error",
+      });
     }
-    if (error.message === "Only PNG, JPEG, and JPG images are allowed") {
+
+    const fileErrors = [
+      "Only PNG and JPEG images are allowed",
+      "File extension must be .png, .jpeg, or .jpg",
+      "File is not a valid PNG or JPEG image",
+      "Failed to validate file content",
+      "No file data provided or file is empty",
+    ];
+
+    if (fileErrors.includes(error.message)) {
       return res.status(400).json({ message: error.message });
     }
+
+    if (error.status && error.message) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
     return res.status(500).json({ message: "Internal server error" });
   }
 }

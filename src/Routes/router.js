@@ -21,7 +21,11 @@ const {
 
 const auth = require("../middlewares/AuthMiddleware");
 const { registerSeller } = require("../Controllers/sellerController");
-const upload = require("../utils/multer");
+const {
+  upload,
+  validateImageContent,
+  handleUploadErrors,
+} = require("../utils/multer");
 
 // user
 
@@ -56,6 +60,13 @@ router.get("/products/orders/fetch", auth, getOrders);
 //Seller
 
 router.post("/seller/account/new", registerSeller);
-router.post("/seller/product/add", auth, upload, addProduct);
+router.post(
+  "/seller/product/add",
+  auth,
+  upload,
+  validateImageContent,
+  addProduct,
+  handleUploadErrors
+);
 
 module.exports = router;

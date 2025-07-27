@@ -5,6 +5,7 @@ const { default: mongoose } = require("mongoose");
 const logger = require("../utils/logger");
 const User = require("../model/UserModel");
 const Orders = require("../model/ordersModel");
+const Role = require("../model/roleModel");
 
 class ProductService {
   async getProducts() {
@@ -147,51 +148,127 @@ class ProductService {
         throw new Error("All fields are required");
       }
 
-      if (!productImages || productImages.length === 0) {
+      const user = await User.findById(sellerId).populate("fk_role_id");
+      if (!user) throw new Error("Invalid seller");
+
+      const roleName =
+        user.fk_role_id?.roleName ||
+        (await Role.findById(user.fk_role_id))?.roleName;
+
+      if (roleName !== "Seller") {
+        logger.warn(`Unauthorized role attempt: ${sellerId}`);
+        throw new Error("You must be seller to add products");
+      }
+
+      if (!Array.isArray(productSize) || productSize.length === 0) {
+        throw new Error("Product size must be a non-empty array");
+      }
+
+      if (!Array.isArray(productImages) || productImages.length === 0) {
         throw new Error("At least one image is required");
       }
+
       if (productImages.length > 5) {
         throw new Error("Maximum 5 images allowed");
       }
 
+      const price = parseFloat(productPrice);
+      const mrp = parseFloat(productMrp);
+      const stock = parseInt(productStock);
+
+      if (isNaN(price) || price <= 0) throw new Error("Invalid product price");
+      if (isNaN(mrp) || mrp <= 0) throw new Error("Invalid product MRP");
+      if (price > mrp)
+        throw new Error("Product price cannot be greater than MRP");
+      if (isNaN(stock) || stock < 0) throw new Error("Invalid product stock");
+
       const newProduct = new Product({
-        name: productName,
-        brand: productBrand,
-        description: productDescription,
-        category: productCategory,
-        price: parseFloat(productPrice),
-        originalPrice: parseFloat(productMrp),
-        size: productSize,
-        stock: parseInt(productStock),
+        name: productName.trim(),
+        brand: productBrand.trim(),
+        description: productDescription.trim(),
+        category: productCategory.trim(),
+        price,
+        originalPrice: mrp,
+        size: productSize.map((size) => size.toString().trim()),
+        stock,
         fk_user_id: sellerId,
       });
 
-      await newProduct.save();
+      const savedProduct = await newProduct.save();
 
-      const imagePromises = productImages.map((base64Image) =>
-        new ProductImage({
+      const imagePromises = productImages.map(async (base64Image, index) => {
+        if (
+          !base64Image ||
+          typeof base64Image !== "string" ||
+          base64Image.length < 100
+        ) {
+          throw new Error(`Invalid image data at index ${index}`);
+        }
+
+        if (!base64Image.match(/^[A-Za-z0-9+/]*={0,2}$/)) {
+          throw new Error(`Invalid base64 format for image at index ${index}`);
+        }
+
+        return new ProductImage({
           image: base64Image,
-          fk_product_id: newProduct._id,
-        }).save()
-      );
+          fk_product_id: savedProduct._id,
+        }).save();
+      });
+
       await Promise.all(imagePromises);
+
+      logger.info(`Product added: ${savedProduct._id} by ${sellerId}`);
 
       return {
         status: 201,
-        message: "Product added",
-        productId: newProduct._id,
+        message: "Product added successfully",
+        data: { productId: savedProduct._id },
       };
     } catch (error) {
-      console.error(`Error Adding Product: ${error.message}`, { error });
+      logger.error(`Error adding product: ${error.message}`, {
+        sellerId,
+        productName,
+      });
+
+      if (error.name === "ValidationError") {
+        return {
+          status: 400,
+          message: "Validation failed",
+          errors: Object.values(error.errors).map((err) => err.message),
+        };
+      }
+
+      if (error.code === 11000) {
+        return {
+          status: 409,
+          message: "Product with similar details already exists",
+        };
+      }
+
+      const businessErrors = [
+        "All fields are required",
+        "Product size must be a non-empty array",
+        "At least one image is required",
+        "Maximum 5 images allowed",
+        "Invalid product price",
+        "Invalid product MRP",
+        "Product price cannot be greater than MRP",
+        "Invalid product stock",
+        "Invalid seller",
+        "You must be seller to add products",
+      ];
+
+      if (
+        businessErrors.includes(error.message) ||
+        error.message.includes("Invalid image data") ||
+        error.message.includes("Invalid base64 format")
+      ) {
+        return { status: 400, message: error.message };
+      }
+
       return {
-        status:
-          error.message === "All fields are required" ||
-          error.message === "At least one image is required" ||
-          error.message === "Maximum 5 images allowed"
-            ? 400
-            : 500,
-        message: error.message,
-        error: error.message,
+        status: 500,
+        message: "Failed to add product. Please try again later.",
       };
     }
   };
