@@ -186,17 +186,32 @@ async function orderProduct(req, res) {
   }
 }
 async function getOrders(req, res) {
-  const { userId } = req.body;
+  const { _id } = req.user;
   try {
-    if (!userId) {
+    if (!_id) {
       return res.status(400).json({
         success: false,
         message: "User ID is required"
       });
     }
     const productService = new ProductService();
-    const orders = await productService.getAllOrders(userId);
-    if (orders.length === 0) {
+    const orders = await productService.getAllOrders(_id);
+
+    const images = await ProductImage.find();
+
+    const allOrderProducts = orders.map((ord) => {
+      const orderProdImages = images
+        .filter((i) => i.fk_product_id.toString() === ord.fk_product_id._id.toString())
+        .map((img) => img.image);
+      const { fk_user_id, ...productData } = ord;
+      return {
+        ...productData,
+        images: orderProdImages,
+      };
+    });
+
+
+    if (allOrderProducts.length === 0) {
       return res.status(404).json({
         success: false,
         message: "No orders found"
@@ -205,7 +220,7 @@ async function getOrders(req, res) {
     return res.status(200).json({
       success: true,
       message: "Fetched orders successfully",
-      data: orders,
+      data: allOrderProducts,
     });
 
   } catch (err) {

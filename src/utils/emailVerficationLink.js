@@ -5,10 +5,10 @@ const logger = require("./logger");
 const emailVerificationLink = async (user) => {
     try {
         const payload = {
-            userId: user._id,
+            id: user._id,
             email: user.email
         }
-        const SECRET = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 24 * 60 * 60 });
+        const SECRET = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
 
         const verficationUrl = `${process.env.CLIENT_URL}/account/verify/${SECRET}`;
 
@@ -19,7 +19,7 @@ const emailVerificationLink = async (user) => {
                 <a href="${verficationUrl}"target="_blank" style="color: #1a73e8;">
                <button style = "background-color: #1a73e8;padding:6px;border-radius: 4px;color:white; text-align:center;border:none;cursor:pointer;">Click here</button>
                 </a>
-                <p>This link will expire in 24 hours.</p>
+                <p>This link will expire in 10 minutes.</p>
             </div>
             `;
 
