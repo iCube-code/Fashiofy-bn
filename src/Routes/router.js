@@ -6,6 +6,7 @@ const {
   getAllProducts,
   orderProduct,
   getOrders,
+  addProduct,
 } = require("../Controllers/productController");
 const { addToCart, getCartProducts } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
@@ -20,6 +21,7 @@ const {
 
 const auth = require("../middlewares/AuthMiddleware");
 const { registerSeller } = require("../Controllers/sellerController");
+const upload = require("../utils/multer");
 
 // user
 
@@ -54,5 +56,6 @@ router.get("/products/orders/fetch", auth, getOrders);
 //Seller
 
 router.post("/seller/account/new", registerSeller);
+router.post("/seller/product/add", auth, upload, addProduct);
 
 module.exports = router;

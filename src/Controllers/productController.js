@@ -4,6 +4,7 @@ const ProductRating = require("../model/ProductRatingModel.js");
 const ProductImage = require("../model/ProductImageModel");
 const logger = require("../utils/logger.js");
 const { CartService } = require("../service/cartService.js");
+const multer = require("multer");
 
 // API for Fetch Product By ID
 const getProductById = async (req, res) => {
@@ -191,7 +192,7 @@ async function getOrders(req, res) {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required"
+        message: "User ID is required",
       });
     }
     const productService = new ProductService();
@@ -199,7 +200,7 @@ async function getOrders(req, res) {
     if (orders.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No orders found"
+        message: "No orders found",
       });
     }
     return res.status(200).json({
@@ -207,13 +208,95 @@ async function getOrders(req, res) {
       message: "Fetched orders successfully",
       data: orders,
     });
-
   } catch (err) {
     logger.error(`internal server error", ${err.message}`);
     return res.status(500).json({
       success: false,
-      message: "Internal server error occured while fetching orders"
+      message: "Internal server error occured while fetching orders",
     });
+  }
+}
+
+async function addProduct(req, res) {
+  try {
+    const {
+      productName,
+      productBrand,
+      productDescription,
+      productCategory,
+      productPrice,
+      productMrp,
+      productSize,
+      productStock,
+    } = req.body;
+    const productImages = req.files;
+    const { _id } = req.user || {};
+
+    if (
+      !productName ||
+      !productBrand ||
+      !productDescription ||
+      !productCategory ||
+      !productPrice ||
+      !productMrp ||
+      !productSize ||
+      !productStock
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!productImages || productImages.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one image is required" });
+    }
+    if (productImages.length > 5) {
+      return res.status(400).json({ message: "Maximum 5 images allowed" });
+    }
+
+    if (!_id) {
+      return res.status(401).json({ message: "Unauthorized User" });
+    }
+
+    const base64Images = productImages.map(
+      (file) => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
+    );
+    const product = new ProductService();
+    const result = await product.addProduct(
+      productName,
+      productBrand,
+      productDescription,
+      productCategory,
+      productPrice,
+      productMrp,
+      productSize,
+      productStock,
+      base64Images,
+      _id
+    );
+    return res.status(result.status).json({
+      message: result.message,
+    });
+  } catch (error) {
+    console.error("Internal Server Error:", error);
+    if (error instanceof multer.MulterError) {
+      if (error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "File size exceeds 5MB limit" });
+      }
+      if (error.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({ message: "Maximum 5 images allowed" });
+      }
+      if (error.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({
+          message:
+            "Unexpected field name. Use 'productImages' for file uploads",
+        });
+      }
+    }
+    if (error.message === "Only PNG, JPEG, and JPG images are allowed") {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -222,4 +305,5 @@ module.exports = {
   getAllProducts,
   orderProduct,
   getOrders,
+  addProduct,
 };

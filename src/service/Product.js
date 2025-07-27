@@ -112,13 +112,89 @@ class ProductService {
       }).lean();
       return orders;
     } catch (err) {
-      logger.error(`Internal server error ${err.mesage}`)
+      logger.error(`Internal server error ${err.mesage}`);
       return res.status(500).json({
         success: false,
-        mesage: "Internal server error"
-      })
+        mesage: "Internal server error",
+      });
     }
-  }
+  };
+
+  addProduct = async (
+    productName,
+    productBrand,
+    productDescription,
+    productCategory,
+    productPrice,
+    productMrp,
+    productSize,
+    productStock,
+    productImages,
+    sellerId
+  ) => {
+    try {
+      if (
+        !productName ||
+        !productBrand ||
+        !productDescription ||
+        !productCategory ||
+        !productPrice ||
+        !productMrp ||
+        !productSize ||
+        !productStock ||
+        !sellerId
+      ) {
+        throw new Error("All fields are required");
+      }
+
+      if (!productImages || productImages.length === 0) {
+        throw new Error("At least one image is required");
+      }
+      if (productImages.length > 5) {
+        throw new Error("Maximum 5 images allowed");
+      }
+
+      const newProduct = new Product({
+        name: productName,
+        brand: productBrand,
+        description: productDescription,
+        category: productCategory,
+        price: parseFloat(productPrice),
+        originalPrice: parseFloat(productMrp),
+        size: productSize,
+        stock: parseInt(productStock),
+        fk_user_id: sellerId,
+      });
+
+      await newProduct.save();
+
+      const imagePromises = productImages.map((base64Image) =>
+        new ProductImage({
+          image: base64Image,
+          fk_product_id: newProduct._id,
+        }).save()
+      );
+      await Promise.all(imagePromises);
+
+      return {
+        status: 201,
+        message: "Product added",
+        productId: newProduct._id,
+      };
+    } catch (error) {
+      console.error(`Error Adding Product: ${error.message}`, { error });
+      return {
+        status:
+          error.message === "All fields are required" ||
+          error.message === "At least one image is required" ||
+          error.message === "Maximum 5 images allowed"
+            ? 400
+            : 500,
+        message: error.message,
+        error: error.message,
+      };
+    }
+  };
 }
 
 module.exports = ProductService;
