@@ -109,7 +109,9 @@ class ProductService {
       }
       const orders = await Orders.find({
         fk_user_id: userId,
-      }).lean();
+      }).populate(
+        "fk_product_id"
+      ).lean();
       return orders;
     } catch (err) {
       logger.error(`Internal server error ${err.mesage}`)
