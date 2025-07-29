@@ -4,6 +4,7 @@ const ProductRating = require("../model/ProductRatingModel.js");
 const ProductImage = require("../model/ProductImageModel");
 const logger = require("../utils/logger.js");
 const { CartService } = require("../service/cartService.js");
+const multer = require("multer");
 
 // API for Fetch Product By ID
 const getProductById = async (req, res) => {
@@ -191,7 +192,7 @@ async function getOrders(req, res) {
     if (!_id) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required"
+        message: "User ID is required",
       });
     }
     const productService = new ProductService();
@@ -214,7 +215,7 @@ async function getOrders(req, res) {
     if (allOrderProducts.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No orders found"
+        message: "No orders found",
       });
     }
     return res.status(200).json({
@@ -222,13 +223,141 @@ async function getOrders(req, res) {
       message: "Fetched orders successfully",
       data: allOrderProducts,
     });
-
   } catch (err) {
     logger.error(`internal server error", ${err.message}`);
     return res.status(500).json({
       success: false,
-      message: "Internal server error occured while fetching orders"
+      message: "Internal server error occured while fetching orders",
     });
+  }
+}
+
+async function addProduct(req, res) {
+  try {
+    const {
+      productName,
+      productBrand,
+      productDescription,
+      productCategory,
+      productPrice,
+      productMrp,
+      productSize,
+      productStock,
+    } = req.body;
+    const productImages = req.files;
+    const { _id } = req.user || {};
+
+    if (
+      !productName ||
+      !productBrand ||
+      !productDescription ||
+      !productCategory ||
+      !productPrice ||
+      !productMrp ||
+      !productSize ||
+      !productStock
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!_id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const parsedProductSize =
+      typeof productSize === "string"
+        ? productSize
+            .split(",")
+            .map((size) => size.trim())
+            .filter((size) => size.length > 0)
+        : Array.isArray(productSize)
+        ? productSize
+        : null;
+
+    if (!parsedProductSize || parsedProductSize.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one product size is required" });
+    }
+
+    if (!productImages || productImages.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one image is required" });
+    }
+
+    if (productImages.length > 5) {
+      return res.status(400).json({ message: "Maximum 5 images allowed" });
+    }
+
+    const price = parseFloat(productPrice);
+    const mrp = parseFloat(productMrp);
+    const stock = parseInt(productStock);
+
+    if (
+      isNaN(price) ||
+      price <= 0 ||
+      isNaN(mrp) ||
+      mrp <= 0 ||
+      price > mrp ||
+      isNaN(stock) ||
+      stock < 0
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid price, MRP, or stock values" });
+    }
+
+    const base64Images = productImages.map((file) =>
+      file.buffer.toString("base64")
+    );
+
+    const product = new ProductService();
+    const result = await product.addProduct(
+      productName.trim(),
+      productBrand.trim(),
+      productDescription.trim(),
+      productCategory.trim(),
+      price,
+      mrp,
+      parsedProductSize,
+      stock,
+      base64Images,
+      _id
+    );
+
+    return res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    logger.error("Error in addProduct:", error);
+
+    if (error instanceof multer.MulterError) {
+      const errorMessages = {
+        LIMIT_FILE_SIZE: "File size exceeds 5MB limit",
+        LIMIT_FILE_COUNT: "Maximum 5 images allowed",
+        LIMIT_UNEXPECTED_FILE: "Use 'productImages' for file uploads",
+      };
+      return res.status(400).json({
+        message: errorMessages[error.code] || "File upload error",
+      });
+    }
+
+    const fileErrors = [
+      "Only PNG and JPEG images are allowed",
+      "File extension must be .png, .jpeg, or .jpg",
+      "File is not a valid PNG or JPEG image",
+      "Failed to validate file content",
+      "No file data provided or file is empty",
+    ];
+
+    if (fileErrors.includes(error.message)) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error.status && error.message) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -237,4 +366,5 @@ module.exports = {
   getAllProducts,
   orderProduct,
   getOrders,
+  addProduct,
 };
