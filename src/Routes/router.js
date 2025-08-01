@@ -7,6 +7,7 @@ const {
   orderProduct,
   getOrders,
   addProduct,
+  getProduct,
 } = require("../Controllers/productController");
 const { addToCart, getCartProducts } = require("../Controllers/cartController");
 const { addToWishList } = require("../Controllers/wishlistController");
@@ -68,5 +69,6 @@ router.post(
   addProduct,
   handleUploadErrors
 );
+router.get("/products/seller/all",auth,getProduct);
 
 module.exports = router;

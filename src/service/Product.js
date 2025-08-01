@@ -274,6 +274,12 @@ class ProductService {
       };
     }
   };
+  getProduct = async(id)=>{
+    const product = await Product.find(
+      { fk_user_id: id }
+    ).lean();
+    return product;
+  }
 }
 
 module.exports = ProductService;
