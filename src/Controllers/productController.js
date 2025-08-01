@@ -267,12 +267,12 @@ async function addProduct(req, res) {
     const parsedProductSize =
       typeof productSize === "string"
         ? productSize
-            .split(",")
-            .map((size) => size.trim())
-            .filter((size) => size.length > 0)
+          .split(",")
+          .map((size) => size.trim())
+          .filter((size) => size.length > 0)
         : Array.isArray(productSize)
-        ? productSize
-        : null;
+          ? productSize
+          : null;
 
     if (!parsedProductSize || parsedProductSize.length === 0) {
       return res
@@ -360,6 +360,42 @@ async function addProduct(req, res) {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+async function getProduct(req, res) {
+  try {
+    const { sellerId } = req.body;
+    // Validate the ID
+    if (!sellerId) {
+      logger.error("Seller ID is required");
+      return res.status(400).json({
+        message: "Something went wrong",
+      });
+    }
+    if (!Types.ObjectId.isValid(sellerId)) {
+      logger.error("Invalid Seller ID");
+      return res.status(400).json({
+        message: "Something went wrong",
+      });
+    }
+
+    const productService = new ProductService();
+    const product =await productService.getProduct(sellerId);
+    if (!product) {
+      logger.error("Product Not Found");
+      return res.status(404).json({
+        message: "Product Not Found",
+      });
+    }
+    return res.status(200).json({
+      status: true,
+      message:"Fetched Product Successfully",
+      data:product,
+    })
+  }
+  catch (err) {
+    logger.error("Error in fetching a product:", err);
+    return res.status(500).json({message:"Internal server error"});
+  }
+}
 
 module.exports = {
   getProductById,
@@ -367,4 +403,5 @@ module.exports = {
   orderProduct,
   getOrders,
   addProduct,
+  getProduct,
 };
