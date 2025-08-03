@@ -17,6 +17,32 @@ class WishListService {
 
     return await wish.save();
   }
+  async getWishListItems(userId) {
+    try {
+      const fetchedWishList = await WishList.find({ fk_user_id: userId });
+
+      if (!fetchedWishList || fetchedWishList.length === 0) {
+        logger.warn(`Wishlist not found for UserId: ${userId}`);
+        return {
+          status: 404,
+          message: "WishList Not Available",
+          data: [],
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Fetched WishList",
+        data: fetchedWishList,
+      };
+    } catch (error) {
+      logger.error("Internal Server Error", error);
+      return {
+        status: 500,
+        message: "Something Went Wrong",
+      };
+    }
+  }
 }
 
 module.exports = { WishListService };
