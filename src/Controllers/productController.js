@@ -134,18 +134,18 @@ async function getAllProducts(req, res) {
 }
 
 async function orderProduct(req, res) {
-  const { userId, productId } = req.body;
+  const { userId, productIds } = req.body;
 
   try {
-    if (!userId || !productId) {
+    if (!userId || !productIds) {
       return res.status(400).json({
         success: false,
-        message: "User ID and Product ID are required",
+        message: "User ID and Product IDs are required",
       });
     }
 
     const productService = new ProductService();
-    const result = await productService.orderProduct(userId, productId);
+    const result = await productService.orderProduct(userId, productIds);
 
     if (result.success) {
       return res.status(201).json({
@@ -175,7 +175,7 @@ async function orderProduct(req, res) {
       `Internal server error in orderProduct controller: ${error.message}`,
       {
         userId,
-        productId,
+        productIds,
         error: error.stack,
       }
     );
