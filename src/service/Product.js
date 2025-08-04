@@ -40,55 +40,68 @@ class ProductService {
     return productImages;
   };
 
-  orderProduct = async (userId, productId) => {
+  orderProduct = async (userId, productIds) => {
+    const prodIds = productIds.map((id) => id.toString());
     try {
-      if (!userId || !productId) {
-        logger.warn("Missing required parameters: userId or productId");
+      if (!userId || !Array.isArray(prodIds) || prodIds.length === 0) {
+        logger.warn("Missing required parameters: userId or productIds");
         return {
           success: false,
-          message: "User ID and Product ID are required",
+          message: "User ID and Product IDs are required",
         };
       }
-
-      const existingOrder = await Orders.findOne({
-        fk_product_id: productId,
-        fk_user_id: userId,
-      }).lean();
-
-      if (existingOrder) {
-        logger.warn(
-          `Order already exists for user ${userId} and product ${productId}`
-        );
-        return { success: false, message: "Order already exists" };
-      }
-
-      const [user, product] = await Promise.all([
-        User.findById(userId).select("_id").lean(),
-        Product.findById(productId).select().lean(),
-      ]);
+      // Validate user
+      const user = await User.findById(userId).select("_id").lean();
 
       if (!user) {
         logger.warn(`User not found: ${userId}`);
         return { success: false, message: "User not found" };
       }
+      const existingOrders = await Orders.find({
+        fk_product_id: { $in: prodIds },
+        fk_user_id: userId,
+      }).lean();
 
-      if (!product) {
-        logger.warn(`Product not found: ${productId}`);
-        return { success: false, message: "Product not available" };
+      const alreadyOrderedIds = new Set(
+        existingOrders.map((order) => order.fk_product_id.toString())
+      );
+
+      // Filter out products that were already ordered
+      const filteredProductIds = prodIds.filter(
+        (id) => !alreadyOrderedIds.has(id)
+      );
+      if (filteredProductIds.length === 0) {
+        return {
+          success: false,
+          message: "All products are already ordered",
+        };
       }
 
-      const newOrder = await Orders.create({
-        status: "Ordered",
-        price: product.originalPrice,
-        fk_product_id: productId,
-        fk_user_id: userId,
-      });
+      const products = await Product.find({
+        _id: { $in: filteredProductIds },
+      }).lean();
 
-      logger.info(`Order created successfully: ${newOrder._id}`);
+      if (products.length !== filteredProductIds.length) {
+        return {
+          success: false,
+          message: "One or more products not found",
+        };
+      }
+
+      const createdOrders = await Promise.all(
+        products.map((product) =>
+          Orders.create({
+            status: "Ordered",
+            price: product.originalPrice,
+            fk_product_id: product._id,
+            fk_user_id: userId,
+          })
+        )
+      );
       return {
         success: true,
-        message: "Order created successfully",
-        data: newOrder,
+        message: "Orders created successfully",
+        data: createdOrders,
       };
     } catch (error) {
       logger.error(`Error in orderProduct: ${error.message}`, error);
