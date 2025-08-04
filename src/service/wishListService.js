@@ -32,7 +32,7 @@ class WishListService {
 
       return {
         status: 200,
-        message: "Fetched WishList",
+        message: "Fetched WishList Products",
         data: fetchedWishList,
       };
     } catch (error) {
