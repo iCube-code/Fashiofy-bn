@@ -10,7 +10,10 @@ const {
   getProduct,
 } = require("../Controllers/productController");
 const { addToCart, getCartProducts } = require("../Controllers/cartController");
-const { addToWishList } = require("../Controllers/wishlistController");
+const {
+  addToWishList,
+  getWishList,
+} = require("../Controllers/wishlistController");
 const {
   register,
   forgotPassword,
@@ -57,6 +60,8 @@ router.post("/products/orders/add", auth, orderProduct);
 router.get("/products/cart/fetch", auth, getCartProducts);
 
 router.get("/products/orders/fetch", auth, getOrders);
+
+router.get("/products/wishlist/fetch", auth, getWishList);
 
 //Seller
 
