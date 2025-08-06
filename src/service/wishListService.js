@@ -5,8 +5,7 @@ class WishListService {
   async getWishlist(userId) {
     const wishlist = await WishList.find({ fk_user_id: userId }).populate({
       path: "fk_product_id",
-      select: "_id name brand price size",
-    });
+    }).lean();
     return wishlist;
   }
   async addToWishList(productId, userId) {
