@@ -3,6 +3,7 @@ const logger = require("../utils/logger");
 const ProductService = require("../service/Product");
 
 const { WishListService } = require("../service/wishListService");
+const ProductImage = require("../model/ProductImageModel");
 
 const addToWishList = async (req, res) => {
   try {
@@ -58,57 +59,77 @@ const getWishList = async (req, res) => {
 
     const wishListService = new WishListService();
     const productService = new ProductService();
-    const wishListResult = await wishListService.getWishListItems(user._id);
-    let wishListProducts = [];
+    const wishListResult = await wishListService.getWishlist(user._id);
 
-    if (wishListResult.data && wishListResult.data.length > 0) {
-      for (let i = 0; i < wishListResult.data.length; i++) {
-        const product = await productService.getProductById(
-          wishListResult.data[i].fk_product_id
-        );
+    const images = await ProductImage.find();
 
-        const reviewsAndRating =
-          await productService.getRatingsAndCommentsOfProduct(
-            wishListResult.data[i].fk_product_id
-          );
+    const wishlistProducts = wishListResult.map((prod) => {
+      const wishlistProdImages = images
+        .filter((i) => i.fk_product_id.toString() === prod.fk_product_id._id.toString())
+        .map((img) => img.image);
+      const { fk_user_id, ...productData } = prod;
+      return {
+        ...productData,
+        images: wishlistProdImages,
+      };
+    });
 
-        let averageRating = 0;
-        let reviewsCount = 0;
-
-        if (reviewsAndRating && reviewsAndRating.length > 0) {
-          const totalRating = reviewsAndRating.reduce(
-            (sum, review) => sum + review.rating,
-            0
-          );
-          averageRating =
-            Math.round((totalRating / reviewsAndRating.length) * 10) / 10;
-          reviewsCount = reviewsAndRating.length;
-        }
-
-        const productImage = await productService.getProductImagesById(
-          wishListResult.data[i].fk_product_id
-        );
-
-        wishListProducts.push({
-          _id: product._id,
-          name: product.name,
-          brand: product.brand,
-          category: product.category,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          description: product.description,
-          size: product.size,
-          stock: product.stock,
-          rating: averageRating,
-          reviews: reviewsCount,
-          images: productImage || [],
-        });
-      }
+    if (wishlistProducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No products found in the wishlist",
+      });
     }
+    // let wishListProducts = [];
+
+    // if (wishListResult.data && wishListResult.data.length > 0) {
+    //   for (let i = 0; i < wishListResult.data.length; i++) {
+    //     const product = await productService.getProductById(
+    //       wishListResult.data[i].fk_product_id
+    //     );
+
+    //     const reviewsAndRating =
+    //       await productService.getRatingsAndCommentsOfProduct(
+    //         wishListResult.data[i].fk_product_id
+    //       );
+
+    //     let averageRating = 0;
+    //     let reviewsCount = 0;
+
+    //     if (reviewsAndRating && reviewsAndRating.length > 0) {
+    //       const totalRating = reviewsAndRating.reduce(
+    //         (sum, review) => sum + review.rating,
+    //         0
+    //       );
+    //       averageRating =
+    //         Math.round((totalRating / reviewsAndRating.length) * 10) / 10;
+    //       reviewsCount = reviewsAndRating.length;
+    //     }
+
+    //     const productImage = await productService.getProductImagesById(
+    //       wishListResult.data[i].fk_product_id
+    //     );
+
+    //     wishListProducts.push({
+    //       _id: product._id,
+    //       name: product.name,
+    //       brand: product.brand,
+    //       category: product.category,
+    //       price: product.price,
+    //       originalPrice: product.originalPrice,
+    //       description: product.description,
+    //       size: product.size,
+    //       stock: product.stock,
+    //       rating: averageRating,
+    //       reviews: reviewsCount,
+    //       images: productImage || [],
+    //     });
+    //   }
+    // }
 
     res
-      .status(wishListResult.status)
-      .json({ message: wishListResult.message, data: wishListProducts });
+      .status(200)
+      .json({ message: wishListResult.message, data: wishlistProducts });
   } catch (error) {
     logger.error("Internal Server Error", error);
     res.status(500).json({
