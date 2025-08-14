@@ -12,5 +12,17 @@ class userService {
             logger.error("error in getting user", err);
         }
     }
+    async updateUserById(id, isActive) {
+        try {
+            const user = await User.findByIdAndUpdate(
+                id,
+                { isActive: isActive },
+                { new: true, runValidators: true }
+            );
+            return user;
+        } catch (err) {
+            logger.error("error in updating user", err);
+        }
+    }
 }
 module.exports = { userService }  
