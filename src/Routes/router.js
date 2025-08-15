@@ -21,6 +21,7 @@ const {
   login,
   resetPassword,
   validateOTP,
+  updateUser,
 } = require("../Controllers/userController");
 
 const auth = require("../middlewares/AuthMiddleware");
@@ -44,6 +45,8 @@ router.post("/user/account/forgot-password", forgotPassword);
 router.post("/user/account/reset-password", resetPassword);
 
 router.post("/user/account/verify", auth, verifyEmail);
+
+router.put("/users/edit",updateUser);
 
 // products
 

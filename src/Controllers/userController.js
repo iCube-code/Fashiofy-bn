@@ -243,6 +243,35 @@ async function validateOTP(req, res) {
   }
 }
 
+async function updateUser(req, res) {
+    
+  const { _id, isActive } = req.body;
+
+  if (!_id) {
+    logger.error(" userId is required");
+    return res.status(400).json({ message: "something went wrong" });
+  }
+  if (typeof isActive !== "boolean") {
+    logger.error("isActive must be a boolean");
+    return res.status(400).json({ message: "isActive must be a boolean" });
+  }
+  try {
+    let user = new userService();
+    const updatedUser = await user.updateUserById(_id,isActive);
+    if (!updatedUser) {
+      logger.error(`User not found with id: ${_id}`);
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser
+    });
+  } catch (err) {
+    logger.error("Server error", err);
+
+    res.status(500).json({ message: "Internal Server error" });
+  }
+}
 module.exports = {
   register,
   login,
@@ -250,4 +279,5 @@ module.exports = {
   resetPassword,
   verifyEmail,
   validateOTP,
+  updateUser,
 };
