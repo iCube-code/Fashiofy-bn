@@ -36,8 +36,9 @@ async function forgotPasswordService(email) {
 
     const userData = {
       userid: isExistingUser._id,
-      userFullName: `${isExistingUser.firstName || ""} ${isExistingUser.lastName || ""
-        }`.trim(),
+      userFullName: `${isExistingUser.firstName || ""} ${
+        isExistingUser.lastName || ""
+      }`.trim(),
       userEmail: isExistingUser.email,
     };
 
@@ -87,13 +88,36 @@ async function resetPasswordService(userId, hashedPassword) {
   }
 }
 
-async function verifyEmailService(email,userId) {
+async function verifyEmailService(email, userId) {
   try {
-    const user = await User.findOne({email, _id: userId });
+    const user = await User.findOne({ email, _id: userId });
     return user;
   } catch (e) {
-    logger.error("error in user EmailVerfication",err);
+    logger.error("error in user EmailVerfication", err);
   }
 }
 
-module.exports = { forgotPasswordService, resetPasswordService,verifyEmailService };
+async function fetchUserService() {
+  try {
+    const users = await User.find().select("-password -__v");
+
+    return {
+      status: 200,
+      message: "Users fetched successfully",
+      data: users,
+    };
+  } catch (error) {
+    logger.error("Database error in fetchUserService:", error);
+    return {
+      status: 500,
+      message: "Unable to fetch users",
+      data: null,
+    };
+  }
+}
+module.exports = {
+  forgotPasswordService,
+  resetPasswordService,
+  verifyEmailService,
+  fetchUserService,
+};

@@ -4,7 +4,10 @@ const bcrypt = require("bcrypt");
 const createHttpError = require("http-errors");
 const User = require("../model/UserModel");
 const logger = require("../utils/logger");
-const { forgotPasswordService } = require("../service/userService");
+const {
+  forgotPasswordService,
+  fetchUserService,
+} = require("../service/userService");
 const { generateLink } = require("../utils/linkGenerator");
 const sendEmail = require("../utils/mailer");
 const { forgotPasswordTemplate } = require("../Templates/forgotPassword");
@@ -244,7 +247,6 @@ async function validateOTP(req, res) {
 }
 
 async function updateUser(req, res) {
-    
   const { _id, isActive } = req.body;
 
   if (!_id) {
@@ -257,14 +259,14 @@ async function updateUser(req, res) {
   }
   try {
     let user = new userService();
-    const updatedUser = await user.updateUserById(_id,isActive);
+    const updatedUser = await user.updateUserById(_id, isActive);
     if (!updatedUser) {
       logger.error(`User not found with id: ${_id}`);
       return res.status(404).json({ message: "User not found" });
     }
     return res.status(200).json({
       message: "User updated successfully",
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (err) {
     logger.error("Server error", err);
@@ -272,6 +274,29 @@ async function updateUser(req, res) {
     res.status(500).json({ message: "Internal Server error" });
   }
 }
+
+const fetchUsers = async (req, res) => {
+  try {
+    const result = await fetchUserService();
+
+    if (!result || !result.status) {
+      return res.status(500).json({
+        message: "Something went wrong",
+      });
+    }
+
+    return res.status(result.status).json({
+      message: result.message,
+      data: result.data,
+    });
+  } catch (error) {
+    logger.error("Something went wrong in fetching users:", error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -280,4 +305,5 @@ module.exports = {
   verifyEmail,
   validateOTP,
   updateUser,
+  fetchUsers,
 };
