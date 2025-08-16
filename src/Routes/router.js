@@ -22,6 +22,7 @@ const {
   resetPassword,
   validateOTP,
   updateUser,
+  fetchUsers,
 } = require("../Controllers/userController");
 
 const auth = require("../middlewares/AuthMiddleware");
@@ -46,7 +47,9 @@ router.post("/user/account/reset-password", resetPassword);
 
 router.post("/user/account/verify", auth, verifyEmail);
 
-router.put("/users/edit",updateUser);
+router.put("/users/edit", updateUser);
+
+router.get("/users/all", auth, fetchUsers);
 
 // products
 
@@ -77,6 +80,6 @@ router.post(
   addProduct,
   handleUploadErrors
 );
-router.get("/products/seller/all",auth,getProduct);
+router.get("/products/seller/all", auth, getProduct);
 
 module.exports = router;
