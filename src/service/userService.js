@@ -1,3 +1,4 @@
+const Role = require("../model/roleModel");
 const User = require("../model/UserModel");
 const logger = require("../utils/logger");
 const Validator = require("../utils/validator");
@@ -99,7 +100,31 @@ async function verifyEmailService(email, userId) {
 
 async function fetchUserService() {
   try {
-    const users = await User.find().select("-password -__v");
+    const users = await User.aggregate([
+      {
+        $lookup: {
+          from: "roles",
+          localField: "fk_role_id",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+      {
+        $unwind: {
+          path: "$role",
+        },
+      },
+      {
+        $project: {
+          password: 0,
+          fk_role_id: 0,
+          __v: 0,
+          "role.__v": 0,
+          "role.createdAt": 0,
+          "role.updatedAt": 0,
+        },
+      },
+    ]);
 
     return {
       status: 200,
