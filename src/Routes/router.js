@@ -8,6 +8,7 @@ const {
   getOrders,
   addProduct,
   getProduct,
+  productReview,
 } = require("../Controllers/productController");
 const { addToCart, getCartProducts } = require("../Controllers/cartController");
 const {
@@ -68,6 +69,8 @@ router.get("/products/cart/fetch", auth, getCartProducts);
 router.get("/products/orders/fetch", auth, getOrders);
 
 router.get("/products/wishlist/fetch", auth, getWishList);
+
+router.post("/products/review",productReview)
 
 //Seller
 

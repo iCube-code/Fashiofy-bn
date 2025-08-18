@@ -287,11 +287,48 @@ class ProductService {
       };
     }
   };
-  getProduct = async(id)=>{
+  getProduct = async (id) => {
     const product = await Product.find(
       { fk_user_id: id }
     ).lean();
     return product;
+  }
+  getProductReview = async (userId, productId, rating, comment) => {
+
+    if (!userId || !productId || typeof rating !== "number") {
+      return res.status(400).json({ status: false, message: "Missing required fields" });
+    }
+
+    const existingReview = await ProductRating.findOne({
+      fk_product_id: productId,
+      fk_user_id: userId,
+    });
+    
+    if (existingReview) {
+      // Update existing review
+      existingReview.rating = rating;
+      existingReview.comment = comment || existingReview.comment;
+      await existingReview.save();
+      return {
+        status: true,
+        message: "Review updated successfully",
+        statusCode: 200,
+      };
+    }
+    else {
+      // Create new review
+      await ProductRating.create({
+        rating,
+        comment,
+        fk_product_id: productId,
+        fk_user_id: userId,
+      });
+      return {
+        status: true,
+        message: "Review added successfully",
+        statusCode: 201,
+      };
+    }
   }
 }
 
