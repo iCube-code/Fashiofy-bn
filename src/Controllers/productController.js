@@ -378,7 +378,7 @@ async function getProduct(req, res) {
     }
 
     const productService = new ProductService();
-    const product =await productService.getProduct(sellerId);
+    const product = await productService.getProduct(sellerId);
     if (!product) {
       logger.error("Product Not Found");
       return res.status(404).json({
@@ -387,13 +387,28 @@ async function getProduct(req, res) {
     }
     return res.status(200).json({
       status: true,
-      message:"Fetched Product Successfully",
-      data:product,
+      message: "Fetched Product Successfully",
+      data: product,
     })
   }
   catch (err) {
     logger.error("Error in fetching a product:", err);
-    return res.status(500).json({message:"Internal server error"});
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+async function productReview(req, res) {
+  const { userId, productId, rating, comment } = req.body;
+  try {
+    const productService = new ProductService();
+    const result = await productService.getProductReview(userId, productId, rating, comment);
+    return res.status(result.statusCode).json({
+      status: result.status,
+      message: result.message,
+    });
+  }
+  catch (err) {
+    logger.error("Error creating/updating review:", err);
+    return res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 }
 
@@ -404,4 +419,5 @@ module.exports = {
   getOrders,
   addProduct,
   getProduct,
+  productReview,
 };
