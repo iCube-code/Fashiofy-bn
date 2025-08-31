@@ -294,16 +294,18 @@ class ProductService {
     return product;
   }
   getProductReview = async (userId, productId, rating, comment) => {
-
     if (!userId || !productId || typeof rating !== "number") {
-      return res.status(400).json({ status: false, message: "Missing required fields" });
+      return {
+        status: false,
+        message: "Missing required fields",
+        statusCode: 400,
+      };
     }
-
     const existingReview = await ProductRating.findOne({
       fk_product_id: productId,
       fk_user_id: userId,
     });
-    
+
     if (existingReview) {
       // Update existing review
       existingReview.rating = rating;
